@@ -1,0 +1,16 @@
+{
+  "name": "broll-render-server",
+  "version": "1.0.0",
+  "description": "HTTP render API for B-Roll Remotion compositions. Called by n8n Cloud.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.443",
+    "@remotion/renderer": "^4.0.443",
+    "express": "^4.21.0",
+    "remotion": "^4.0.443"
+  }
+}

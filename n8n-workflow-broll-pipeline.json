@@ -1,0 +1,96 @@
+{
+  "name": "B-Roll Scene Generator — Transcript to Scene JSON",
+  "nodes": [
+    {
+      "id": "webhook-1",
+      "name": "B-Roll Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "broll-generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "broll-generate"
+    },
+    {
+      "id": "code-prompt-1",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst contentType = body.contentType || 'technical-walkthrough';\n\nconst FLOWS = {\n  'technical-walkthrough': `Default 5-scene flow (45-60s):\\n1. Hook/Problem (big-stat-reveal or kpi-dashboard) 8-12s\\n2. Speaker Intro (person-scorecard) 8-10s\\n3. How It Works (workflow-pipeline) 10-14s\\n4. Results/Data (data-table or kpi-dashboard) 10-14s\\n5. Architecture + CTA (node-graph + cta-comment) 10-14s\\n\\nTranscript triggers:\\n- Process/workflow explanation -> workflow-pipeline\\n- Numbers/metrics -> kpi-dashboard or big-stat-reveal\\n- Before vs after -> comparison-split\\n- System architecture -> node-graph\\n- Self-introduction -> person-scorecard\\n- Engagement ask -> cta-comment`,\n\n  'case-study': `Default 6-scene flow (50-70s):\\n1. Hook Stat (big-stat-reveal) 6-10s\\n2. Client Intro (person-scorecard) 8-10s\\n3. The Challenge (comparison-split or kpi-dashboard) 8-12s\\n4. The Solution (timeline-steps or workflow-pipeline) 10-14s\\n5. The Results (kpi-dashboard + data-table) 10-14s\\n6. Trust + CTA (logo-endorsement + cta-comment) 8-12s`,\n\n  'podcast': `Flexible 4-6 scenes (40-60s):\\n1. Guest Intro (person-scorecard) 8-10s\\n2. Key Stat (big-stat-reveal) 6-8s\\n3-4. Topic Visualization (pick from pool) 8-12s each\\n5. Engagement CTA (cta-comment) 6-8s\\nPool: workflow-pipeline, comparison-split, kpi-dashboard, logo-endorsement, timeline-steps, node-graph, data-table`\n};\n\nconst flow = FLOWS[contentType] || FLOWS['technical-walkthrough'];\n\nconst DATA_SHAPES = `Scene data shapes:\\n- big-stat-reveal: { value: number, prefix?: string, suffix?: string, format?: 'abbreviated'|'percentage', color: hex, subtitle: string, comparison?: { before: {label,value}, after: {label,value} } }\\n- person-scorecard: { name: string, title: string, badges: [{value,label}] (2-4), bottomStrip?: string }\\n- kpi-dashboard: { header: string, status?: string, cards: [{label, value: number, prefix?, suffix?, color: hex}] (2-4), sparkline?: boolean }\\n- workflow-pipeline: { header: string, status?: string, rows: [{label, sub?, glow?: boolean, color?}][][] (1-2 rows), stats?: [{label,value}], title?: {text, accentWord?} }\\n- data-table: { header: string, heroStat?: {label, value: number, color, subtitle?}, table: {columns: string[], rows: [{cells: string[], color?}]} }\\n- node-graph: { header: string, status?: {label, color}, nodes: [{label, x: 0-100, y: 0-100, color, glow?}], edges: [{from: idx, to: idx, color?}], statusBar?: [{label,value}] }\\n- timeline-steps: { header: string, steps: [{label, subtitle?, status: 'complete'|'active'|'pending'}], progress?: 0-100 }\\n- comparison-split: { left: {header, color, icon: 'cross', items: string[]}, right: {header, color, icon: 'check', items: string[]} }\\n- logo-endorsement: { header: string, logos: [{name, imageUrl?}], layout?: 'grid-3x2'|'row', summaryStat?: {label,value} }\\n- cta-comment: { action: string, keyword: string, subtitle?: string }`;\n\nconst systemPrompt = `You are a B-roll scene generator for TrueHorizon video production. Analyze transcripts and output JSON config for animated Remotion B-roll graphics.\\n\\nContent Type: ${contentType}\\n\\n${flow}\\n\\n${DATA_SHAPES}\\n\\nOutput format:\\n{\\n  \"meta\": { \"contentType\": \"${contentType}\", \"title\": \"<title>\", \"fps\": 30, \"width\": 1080, \"height\": 1920, \"talkingHeadUrl\": \"${body.videoUrl || ''}\" },\\n  \"scenes\": [{ \"type\": \"<type>\", \"from\": <frame>, \"durationInFrames\": <dur>, \"data\": {...} }],\\n  \"textStrip\": { \"labels\": [{ \"from\": <frame>, \"label\": \"<text>\" }] }\\n}\\n\\nRules:\\n1. Scenes sequential, no overlap. frame = seconds * 30\\n2. Match scenes to what speaker says at that moment\\n3. Colors: Teal #00D4FF, Green #00FF88, Red #FF4444, Orange #FF8C00, Purple #8B5CF6\\n4. Min scene: 180 frames (6s)\\n5. Output ONLY JSON, no markdown or explanation`;\n\nconst context = [\n  body.speakerName ? `Speaker: ${body.speakerName}` : '',\n  body.company ? `Company: ${body.company}` : '',\n  body.metrics ? `Key metrics: ${JSON.stringify(body.metrics)}` : ''\n].filter(Boolean).join('\\n');\n\nconst userMessage = `${context ? context + '\\n\\n' : ''}Transcript:\\n${body.transcript}`;\n\nreturn [{ json: { systemPrompt, userMessage, contentType, videoUrl: body.videoUrl || '' } }];"
+      }
+    },
+    {
+      "id": "http-claude-1",
+      "name": "Claude API — Generate Scenes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, system: $json.systemPrompt, messages: [{ role: 'user', content: $json.userMessage }] }) }}"
+      }
+    },
+    {
+      "id": "code-parse-1",
+      "name": "Parse Scene JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1020, 300],
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content?.[0]?.text || response.data?.content?.[0]?.text || '';\n\nlet config;\ntry {\n  config = JSON.parse(content);\n} catch (e) {\n  const match = content.match(/```(?:json)?\\n?([\\s\\S]*?)```/);\n  if (match) {\n    config = JSON.parse(match[1].trim());\n  } else {\n    const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      config = JSON.parse(jsonMatch[0]);\n    } else {\n      throw new Error('Failed to parse scene JSON: ' + content.substring(0, 200));\n    }\n  }\n}\n\nconst totalFrames = config.scenes.reduce(\n  (max, s) => Math.max(max, s.from + s.durationInFrames), 0\n);\n\nif (!config.meta || !config.scenes || config.scenes.length === 0) {\n  throw new Error('Invalid config: missing meta or scenes');\n}\n\nreturn [{ json: { success: true, config, totalFrames, totalSeconds: (totalFrames / 30).toFixed(1), sceneCount: config.scenes.length, sceneTypes: config.scenes.map(s => s.type) } }];"
+      }
+    },
+    {
+      "id": "respond-1",
+      "name": "Return Scene JSON",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1280, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "B-Roll Webhook": {
+      "main": [[{ "node": "Build Claude Prompt", "type": "main", "index": 0 }]]
+    },
+    "Build Claude Prompt": {
+      "main": [[{ "node": "Claude API — Generate Scenes", "type": "main", "index": 0 }]]
+    },
+    "Claude API — Generate Scenes": {
+      "main": [[{ "node": "Parse Scene JSON", "type": "main", "index": 0 }]]
+    },
+    "Parse Scene JSON": {
+      "main": [[{ "node": "Return Scene JSON", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "contentType": "technical-walkthrough",
+    "title": "Pre-Meeting Intelligence System",
+    "fps": 30,
+    "width": 1080,
+    "height": 1920,
+    "talkingHeadUrl": ""
+  },
+  "scenes": [
+    {
+      "type": "big-stat-reveal",
+      "from": 0,
+      "durationInFrames": 240,
+      "data": {
+        "value": 58,
+        "suffix": "min",
+        "color": "#FF4444",
+        "subtitle": "Average time wasted on manual meeting prep"
+      }
+    },
+    {
+      "type": "person-scorecard",
+      "from": 240,
+      "durationInFrames": 270,
+      "data": {
+        "name": "Zain Bukhari",
+        "title": "Senior AI Engineer — TrueHorizon",
+        "badges": [
+          { "value": "AI", "label": "Systems" },
+          { "value": "n8n", "label": "Automation" },
+          { "value": "50+", "label": "Workflows" }
+        ],
+        "bottomStrip": "TrueHorizon AI"
+      }
+    },
+    {
+      "type": "workflow-pipeline",
+      "from": 510,
+      "durationInFrames": 360,
+      "data": {
+        "header": "Pre-Meeting Intelligence",
+        "status": "ACTIVE",
+        "rows": [
+          [
+            { "label": "Calendar", "sub": "Trigger" },
+            { "label": "CRM Lookup", "sub": "HubSpot" },
+            { "label": "Enrichment", "sub": "Apollo.io", "glow": true }
+          ],
+          [
+            { "label": "Normalize", "sub": "Data Clean" },
+            { "label": "AI Agent", "sub": "GPT-4o", "glow": true },
+            { "label": "Gmail", "sub": "Deliver" }
+          ]
+        ],
+        "stats": [
+          { "label": "Records Processed", "value": "2.7M" },
+          { "label": "Response Time", "value": "<3s" }
+        ],
+        "title": { "text": "INTELLIGENCE PIPELINE", "accentWord": "INTELLIGENCE" }
+      }
+    },
+    {
+      "type": "comparison-split",
+      "from": 870,
+      "durationInFrames": 300,
+      "data": {
+        "left": {
+          "header": "BEFORE",
+          "color": "#FF4444",
+          "icon": "cross",
+          "items": [
+            "Check CRM manually",
+            "Scan LinkedIn profiles",
+            "Search old emails",
+            "58 min avg prep time"
+          ]
+        },
+        "right": {
+          "header": "AFTER",
+          "color": "#00FF88",
+          "icon": "check",
+          "items": [
+            "Auto-detect meetings",
+            "CRM + enrichment in seconds",
+            "AI-structured brief",
+            "Delivered before the call"
+          ]
+        }
+      }
+    },
+    {
+      "type": "kpi-dashboard",
+      "from": 1170,
+      "durationInFrames": 270,
+      "data": {
+        "header": "System Performance",
+        "status": "LIVE",
+        "cards": [
+          { "label": "Briefs Sent", "value": 847, "color": "#00D4FF" },
+          { "label": "Prep Time", "value": 3, "suffix": "min", "color": "#00FF88" },
+          { "label": "Accuracy", "value": 99, "suffix": "%", "color": "#00FF88" }
+        ],
+        "sparkline": true
+      }
+    },
+    {
+      "type": "cta-comment",
+      "from": 1440,
+      "durationInFrames": 210,
+      "data": {
+        "action": "COMMENT",
+        "keyword": "AUTOMATION",
+        "subtitle": "Want this for your team?"
+      }
+    }
+  ],
+  "textStrip": {
+    "labels": [
+      { "from": 0, "label": "The Problem" },
+      { "from": 240, "label": "Zain · TrueHorizon AI" },
+      { "from": 510, "label": "Intelligence Pipeline" },
+      { "from": 870, "label": "Before vs After" },
+      { "from": 1170, "label": "System Performance" },
+      { "from": 1440, "label": "Join the Conversation" }
+    ]
+  }
+}

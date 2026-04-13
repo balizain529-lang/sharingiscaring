@@ -1,0 +1,18 @@
+# API keys and local config
+.env
+*.env.local
+.claude/
+
+# Dependencies (run npm install to restore)
+node_modules/
+
+# Large video files (share via Drive instead)
+*.mp4
+*.mov
+*.MOV
+b-roll-remotion/out/
+Jon Pierpoint Short Form Clip/
+
+# OS files
+.DS_Store
+Thumbs.db

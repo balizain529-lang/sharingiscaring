@@ -1,0 +1,154 @@
+{
+  "name": "B-Roll Form Intake — User-Friendly Input",
+  "nodes": [
+    {
+      "id": "form-1",
+      "name": "B-Roll Request Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [250, 300],
+      "parameters": {
+        "formTitle": "B-Roll Scene Generator",
+        "formDescription": "Generate animated B-roll graphics from a transcript. Fill in the details below and submit.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Content Type",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  { "option": "technical-walkthrough" },
+                  { "option": "case-study" },
+                  { "option": "podcast" }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Transcript",
+              "fieldType": "textarea",
+              "requiredField": true,
+              "placeholder": "Paste your full transcript with timestamps here..."
+            },
+            {
+              "fieldLabel": "Video URL",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "https://storage.example.com/talking-head.mp4"
+            },
+            {
+              "fieldLabel": "Speaker Name",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "e.g., Zain Bukhari"
+            },
+            {
+              "fieldLabel": "Company",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "e.g., TrueHorizon AI"
+            },
+            {
+              "fieldLabel": "Key Metrics (comma-separated)",
+              "fieldType": "text",
+              "requiredField": false,
+              "placeholder": "e.g., 2.7M records, $722K saved, 99.8% accuracy"
+            }
+          ]
+        },
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-map-1",
+      "name": "Map Form to Pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "parameters": {
+        "jsCode": "const form = $input.first().json;\n\nconst metrics = form['Key Metrics (comma-separated)']\n  ? form['Key Metrics (comma-separated)'].split(',').map(m => m.trim())\n  : [];\n\nreturn [{\n  json: {\n    body: {\n      contentType: form['Content Type'] || 'technical-walkthrough',\n      transcript: form['Transcript'],\n      videoUrl: form['Video URL'] || '',\n      speakerName: form['Speaker Name'] || '',\n      company: form['Company'] || '',\n      metrics\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-prompt-2",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 300],
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst contentType = body.contentType || 'technical-walkthrough';\n\nconst FLOWS = {\n  'technical-walkthrough': `Default 5-scene flow (45-60s):\\n1. Hook/Problem (big-stat-reveal or kpi-dashboard) 8-12s\\n2. Speaker Intro (person-scorecard) 8-10s\\n3. How It Works (workflow-pipeline) 10-14s\\n4. Results/Data (data-table or kpi-dashboard) 10-14s\\n5. Architecture + CTA (node-graph + cta-comment) 10-14s`,\n  'case-study': `Default 6-scene flow (50-70s):\\n1. Hook Stat (big-stat-reveal) 6-10s\\n2. Client Intro (person-scorecard) 8-10s\\n3. The Challenge (comparison-split or kpi-dashboard) 8-12s\\n4. The Solution (timeline-steps or workflow-pipeline) 10-14s\\n5. The Results (kpi-dashboard + data-table) 10-14s\\n6. Trust + CTA (logo-endorsement + cta-comment) 8-12s`,\n  'podcast': `Flexible 4-6 scenes (40-60s):\\n1. Guest Intro (person-scorecard) 8-10s\\n2. Key Stat (big-stat-reveal) 6-8s\\n3-4. Topic Visualization (pick from pool) 8-12s each\\n5. Engagement CTA (cta-comment) 6-8s`\n};\n\nconst flow = FLOWS[contentType] || FLOWS['technical-walkthrough'];\n\nconst DATA_SHAPES = `Scene data shapes:\\n- big-stat-reveal: { value: number, prefix?, suffix?, format?: 'abbreviated'|'percentage', color: hex, subtitle: string, comparison?: { before: {label,value}, after: {label,value} } }\\n- person-scorecard: { name, title, badges: [{value,label}] (2-4), bottomStrip? }\\n- kpi-dashboard: { header, status?, cards: [{label, value: number, prefix?, suffix?, color}] (2-4), sparkline? }\\n- workflow-pipeline: { header, status?, rows: [{label, sub?, glow?, color?}][][] (1-2 rows), stats?: [{label,value}], title?: {text, accentWord?} }\\n- data-table: { header, heroStat?: {label, value: number, color, subtitle?}, table: {columns: string[], rows: [{cells: string[], color?}]} }\\n- node-graph: { header, status?: {label, color}, nodes: [{label, x: 0-100, y: 0-100, color, glow?}], edges: [{from: idx, to: idx, color?}], statusBar?: [{label,value}] }\\n- timeline-steps: { header, steps: [{label, subtitle?, status: 'complete'|'active'|'pending'}], progress?: 0-100 }\\n- comparison-split: { left: {header, color, icon: 'cross', items: string[]}, right: {header, color, icon: 'check', items: string[]} }\\n- logo-endorsement: { header, logos: [{name, imageUrl?}], layout?: 'grid-3x2'|'row', summaryStat?: {label,value} }\\n- cta-comment: { action, keyword, subtitle? }`;\n\nconst systemPrompt = `You are a B-roll scene generator for TrueHorizon video production. Analyze transcripts and output JSON config for animated Remotion B-roll.\\n\\nContent Type: ${contentType}\\n\\n${flow}\\n\\n${DATA_SHAPES}\\n\\nOutput: { \"meta\": { \"contentType\": \"${contentType}\", \"title\": \"<title>\", \"fps\": 30, \"width\": 1080, \"height\": 1920, \"talkingHeadUrl\": \"${body.videoUrl || ''}\" }, \"scenes\": [{ \"type\": \"<type>\", \"from\": <frame>, \"durationInFrames\": <dur>, \"data\": {...} }], \"textStrip\": { \"labels\": [{ \"from\": <frame>, \"label\": \"<text>\" }] } }\\n\\nRules: scenes sequential no overlap. frame=seconds*30. Colors: #00D4FF #00FF88 #FF4444 #FF8C00 #8B5CF6. Min 180 frames. Output ONLY JSON.`;\n\nconst context = [body.speakerName ? `Speaker: ${body.speakerName}` : '', body.company ? `Company: ${body.company}` : '', body.metrics?.length ? `Metrics: ${body.metrics.join(', ')}` : ''].filter(Boolean).join('\\n');\nconst userMessage = `${context ? context + '\\n\\n' : ''}Transcript:\\n${body.transcript}`;\n\nreturn [{ json: { systemPrompt, userMessage, contentType, videoUrl: body.videoUrl || '' } }];"
+      }
+    },
+    {
+      "id": "http-claude-2",
+      "name": "Claude API — Generate Scenes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $vars.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, system: $json.systemPrompt, messages: [{ role: 'user', content: $json.userMessage }] }) }}"
+      }
+    },
+    {
+      "id": "code-parse-2",
+      "name": "Parse Scene JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 300],
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content?.[0]?.text || response.data?.content?.[0]?.text || '';\n\nlet config;\ntry {\n  config = JSON.parse(content);\n} catch (e) {\n  const match = content.match(/```(?:json)?\\n?([\\s\\S]*?)```/);\n  if (match) config = JSON.parse(match[1].trim());\n  else {\n    const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) config = JSON.parse(jsonMatch[0]);\n    else throw new Error('Failed to parse scene JSON');\n  }\n}\n\nconst totalFrames = config.scenes.reduce((max, s) => Math.max(max, s.from + s.durationInFrames), 0);\nif (!config.meta || !config.scenes?.length) throw new Error('Invalid config');\n\nreturn [{ json: { success: true, config, totalFrames, totalSeconds: (totalFrames / 30).toFixed(1), sceneCount: config.scenes.length, sceneTypes: config.scenes.map(s => s.type) } }];"
+      }
+    },
+    {
+      "id": "respond-form-1",
+      "name": "Show Results Page",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1500, 300],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=<html><head><title>B-Roll Generated</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0B1222;color:#fff;padding:40px;max-width:900px;margin:0 auto}h1{color:#00D4FF}pre{background:#111E30;padding:20px;border-radius:10px;overflow-x:auto;font-size:13px;border:1px solid rgba(255,255,255,0.08)}.meta{display:flex;gap:20px;margin:20px 0}.stat{background:#111E30;padding:16px 24px;border-radius:8px;text-align:center;border:1px solid rgba(255,255,255,0.08)}.stat .val{font-size:32px;font-weight:900;color:#00D4FF}.stat .label{font-size:13px;color:rgba(255,255,255,0.5)}.scenes{margin:20px 0}.scene{background:#111E30;padding:12px 16px;border-radius:8px;margin:8px 0;display:flex;gap:16px;align-items:center;border:1px solid rgba(255,255,255,0.08)}.scene .type{color:#00FF88;font-weight:700;min-width:160px}.scene .timing{color:rgba(255,255,255,0.4);font-size:13px}a{color:#00D4FF}</style></head><body><h1>B-Roll Scene Config Generated</h1><div class='meta'><div class='stat'><div class='val'>{{ $json.sceneCount }}</div><div class='label'>Scenes</div></div><div class='stat'><div class='val'>{{ $json.totalSeconds }}s</div><div class='label'>Duration</div></div><div class='stat'><div class='val'>{{ $json.config.meta.contentType }}</div><div class='label'>Content Type</div></div></div><h2>Scenes</h2><div class='scenes'>{{ $json.config.scenes.map(s => `<div class='scene'><span class='type'>${s.type}</span><span>${JSON.stringify(s.data).substring(0,80)}...</span><span class='timing'>${(s.from/30).toFixed(1)}s–${((s.from+s.durationInFrames)/30).toFixed(1)}s</span></div>`).join('') }}</div><h2>Full JSON Config</h2><p>Copy this into Remotion Studio as <code>inputProps</code> for the <code>DynamicShort</code> composition:</p><pre>{{ JSON.stringify($json.config, null, 2) }}</pre></body></html>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "text/html" }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "B-Roll Request Form": {
+      "main": [[{ "node": "Map Form to Pipeline", "type": "main", "index": 0 }]]
+    },
+    "Map Form to Pipeline": {
+      "main": [[{ "node": "Build Claude Prompt", "type": "main", "index": 0 }]]
+    },
+    "Build Claude Prompt": {
+      "main": [[{ "node": "Claude API — Generate Scenes", "type": "main", "index": 0 }]]
+    },
+    "Claude API — Generate Scenes": {
+      "main": [[{ "node": "Parse Scene JSON", "type": "main", "index": 0 }]]
+    },
+    "Parse Scene JSON": {
+      "main": [[{ "node": "Show Results Page", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
