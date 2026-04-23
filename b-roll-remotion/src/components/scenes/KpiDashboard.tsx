@@ -38,26 +38,38 @@ export const KpiDashboard: React.FC<{ data: KpiDashboardScene["data"] }> = ({ da
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
         {data.cards.map((card, i) => {
           const delay = 8 + i * 10;
           const p = spring({ frame: Math.max(0, frame - delay), fps, config: { damping: 14 } });
-          const scale = interpolate(p, [0, 1], [0.85, 1]);
+          const entranceScale = interpolate(p, [0, 1], [0.85, 1]);
           const op = interpolate(p, [0, 1], [0, 1]);
-          const t = Math.min(Math.max(0, frame - delay) / 35, 1);
+          const countFrames = 35;
+          const t = Math.min(Math.max(0, frame - delay) / countFrames, 1);
           const eased = 1 - Math.pow(1 - t, 3);
-          const counted = Math.round(eased * card.value);
+          // After count-up settles, add a live tick that fluctuates within tickRange
+          const settled = t >= 1;
+          const tickBase = Math.round(eased * card.value);
+          const [tickMin, tickMax] = card.tickRange ?? [-1, 1];
+          // map sin(-1..1) into [tickMin, tickMax]
+          const tickSin = Math.sin(frame * 0.09 + i * 1.3);
+          const tickOffset = settled
+            ? Math.round(((tickSin + 1) / 2) * (tickMax - tickMin) + tickMin)
+            : 0;
+          const counted = Math.max(0, tickBase + tickOffset);
           const cardGlow = Math.sin(frame * 0.1 + i) * 0.3 + 0.7;
+          const breathe = settled ? Math.sin(frame * 0.07 + i) * 0.01 + 1 : 1;
+          const scale = entranceScale * breathe;
           return (
             <div key={card.label} style={{
               opacity: op, transform: `scale(${scale})`, flex: 1,
-              background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 10,
-              padding: "18px 14px", textAlign: "center",
+              background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12,
+              padding: "24px 18px", textAlign: "center",
             }}>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{card.label}</div>
+              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", marginBottom: 8, letterSpacing: "0.02em" }}>{card.label}</div>
               <div style={{
-                fontSize: 42, fontWeight: 900, color: card.color,
-                textShadow: `0 0 ${20 * cardGlow}px ${card.color}66`,
+                fontSize: 52, fontWeight: 900, color: card.color,
+                textShadow: `0 0 ${24 * cardGlow}px ${card.color}77`,
               }}>
                 {card.prefix ?? ""}{counted}{card.suffix ?? ""}
               </div>

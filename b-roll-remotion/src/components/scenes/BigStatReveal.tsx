@@ -70,39 +70,43 @@ export const BigStatReveal: React.FC<{ data: BigStatRevealScene["data"] }> = ({ 
       padding: "24px 40px", boxSizing: "border-box", position: "relative",
     }}>
       <Particles />
-      <div style={{
-        fontSize: 64, fontWeight: 900, color: data.color, textAlign: "center",
-        textShadow: `0 0 ${24 * glow}px ${data.color}66`,
-        position: "relative", zIndex: 1,
-      }}>
-        {data.prefix ?? ""}{displayed}{suffix}
-      </div>
-      <div style={{
-        width: `${lineW}%`, height: 2, borderRadius: 1, marginTop: 16, marginBottom: 16,
-        background: `linear-gradient(90deg, transparent, ${data.color}, transparent)`,
-        boxShadow: `0 0 12px ${data.color}44`,
-      }} />
+      {data.value !== 0 && (
+        <div style={{
+          fontSize: 180, fontWeight: 900, color: data.color, textAlign: "center",
+          textShadow: `0 0 ${44 * glow}px ${data.color}88`,
+          position: "relative", zIndex: 1, lineHeight: 1,
+        }}>
+          {data.prefix ?? ""}{displayed}{suffix}
+        </div>
+      )}
+      {data.value !== 0 && (
+        <div style={{
+          width: `${lineW}%`, height: 3, borderRadius: 2, marginTop: 28, marginBottom: 28,
+          background: `linear-gradient(90deg, transparent, ${data.color}, transparent)`,
+          boxShadow: `0 0 16px ${data.color}55`,
+        }} />
+      )}
       <div style={{
         opacity: subOp, transform: `translateY(${subY}px)`,
-        fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.7)",
-        textAlign: "center", maxWidth: 800, position: "relative", zIndex: 1,
+        fontSize: 36, fontWeight: 600, color: "rgba(255,255,255,0.8)",
+        textAlign: "center", maxWidth: 1200, position: "relative", zIndex: 1, lineHeight: 1.3,
       }}>
         {data.subtitle}
       </div>
       {data.comparison && (
         <div style={{
-          opacity: compOp, display: "flex", alignItems: "center", gap: 24,
-          marginTop: 32, position: "relative", zIndex: 1,
+          opacity: compOp, display: "flex", alignItems: "center", gap: 48,
+          marginTop: 56, position: "relative", zIndex: 1,
         }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{data.comparison.before.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>{data.comparison.before.value}</div>
+            <div style={{ fontSize: 20, color: "rgba(255,255,255,0.45)", marginBottom: 8, letterSpacing: "0.1em", fontWeight: 700 }}>{data.comparison.before.label}</div>
+            <div style={{ fontSize: 64, fontWeight: 800, color: "rgba(255,255,255,0.45)" }}>{data.comparison.before.value}</div>
           </div>
-          <div style={{ fontSize: 28, color: "rgba(255,255,255,0.3)" }}>→</div>
+          <div style={{ fontSize: 56, color: "rgba(255,255,255,0.35)" }}>→</div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{data.comparison.after.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: data.color,
-              textShadow: `0 0 12px ${data.color}55` }}>{data.comparison.after.value}</div>
+            <div style={{ fontSize: 20, color: "rgba(255,255,255,0.45)", marginBottom: 8, letterSpacing: "0.1em", fontWeight: 700 }}>{data.comparison.after.label}</div>
+            <div style={{ fontSize: 64, fontWeight: 800, color: data.color,
+              textShadow: `0 0 16px ${data.color}66` }}>{data.comparison.after.value}</div>
           </div>
         </div>
       )}

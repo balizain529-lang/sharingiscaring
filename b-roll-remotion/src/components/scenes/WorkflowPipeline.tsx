@@ -25,19 +25,21 @@ const WorkflowNode: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const p = spring({ frame: Math.max(0, frame - delay), fps, config: { damping: 10, stiffness: 200 } });
-  const scale = interpolate(p, [0, 1], [0.3, 1]);
+  const entranceScale = interpolate(p, [0, 1], [0.3, 1]);
   const opacity = interpolate(p, [0, 1], [0, 1]);
   const g = glow ? Math.sin(frame * 0.1 + delay) * 0.35 + 0.65 : 0;
+  const breathe = p >= 1 ? Math.sin(frame * 0.08 + delay) * 0.015 + 1 : 1;
+  const scale = entranceScale * breathe;
 
   return (
     <div style={{
       opacity, transform: `scale(${scale})`,
       background: CARD_BG, border: `1.5px solid ${glow ? color : BORDER}`,
-      borderRadius: 10, padding: "12px 18px", textAlign: "center", minWidth: 110,
-      boxShadow: glow ? `0 0 ${18 * g}px ${color}55, inset 0 0 ${8 * g}px ${color}11` : "none",
+      borderRadius: 12, padding: "18px 26px", textAlign: "center", minWidth: 160,
+      boxShadow: glow ? `0 0 ${24 * g}px ${color}66, inset 0 0 ${10 * g}px ${color}14` : "none",
     }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: glow ? color : "#fff", marginBottom: 2 }}>{label}</div>
-      {sub && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>{sub}</div>}
+      <div style={{ fontSize: 22, fontWeight: 800, color: glow ? color : "#fff", marginBottom: 4, letterSpacing: "0.01em" }}>{label}</div>
+      {sub && <div style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>{sub}</div>}
     </div>
   );
 };
@@ -74,15 +76,16 @@ export const WorkflowPipeline: React.FC<{ data: WorkflowPipelineScene["data"] }>
     <div style={{
       width: "100%", height: "100%", background: BG,
       fontFamily: "Inter, system-ui, sans-serif",
-      padding: "24px 32px 20px", display: "flex", flexDirection: "column",
+      padding: "48px 64px 40px", display: "flex", flexDirection: "column",
+      justifyContent: "center", gap: 32,
       boxSizing: "border-box", position: "relative",
     }}>
       <ScanLine />
       <div style={{
         opacity: interpolate(headerP, [0, 1], [0, 1]),
-        display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
       }}>
-        <span style={{ fontSize: 24, fontWeight: 800, color: TEAL, letterSpacing: "0.06em" }}>{data.header}</span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: TEAL, letterSpacing: "0.06em" }}>{data.header}</span>
         {data.status && (
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 9, height: 9, borderRadius: "50%", background: GREEN,
@@ -93,7 +96,7 @@ export const WorkflowPipeline: React.FC<{ data: WorkflowPipelineScene["data"] }>
       </div>
 
       {data.rows.map((row, ri) => (
-        <div key={ri} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+        <div key={ri} style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {row.map((node, ni) => {
             const delay = 4 + ri * 20 + ni * 6;
             const lineDelay = delay + 3;

@@ -10,8 +10,8 @@ export interface BRollConfig {
     contentType: ContentType;
     title: string;
     fps: 30;
-    width: 1080;
-    height: 1920;
+    width: number;
+    height: number;
     talkingHeadUrl: string;
     talkingHeadTrim?: {
       startFrame?: number;
@@ -22,6 +22,14 @@ export interface BRollConfig {
   textStrip: {
     labels: { from: number; label: string }[];
   };
+  lowerThirds?: LowerThird[];
+}
+
+export interface LowerThird {
+  name: string;
+  title: string;
+  from: number;
+  durationInFrames: number;
 }
 
 // ─── Scene Union ────────────────────────────────────────────────────
@@ -97,6 +105,7 @@ export interface KpiDashboardScene extends SceneBase {
       prefix?: string;
       suffix?: string;
       color: string;
+      tickRange?: [number, number];
     }[];
     sparkline?: boolean;
   };

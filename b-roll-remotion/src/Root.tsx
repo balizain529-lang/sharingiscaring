@@ -183,6 +183,114 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
 
+      {/* ── YT Scraper Intro (horizontal cutaway) ── */}
+      <Composition
+        id="YtScraperIntro"
+        component={DynamicCutaway}
+        durationInFrames={2670}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          config: {
+            meta: {
+              contentType: "technical-walkthrough",
+              title: "YT Scraper Intro",
+              fps: 30,
+              width: 1920,
+              height: 1080,
+              talkingHeadUrl: "yt-scraper/intro.mp4",
+            },
+            scenes: [
+              {
+                type: "comparison-split",
+                from: 210,
+                durationInFrames: 240,
+                data: {
+                  left: {
+                    header: "THE CREATOR TRAP",
+                    color: "#FF4444",
+                    icon: "cross",
+                    items: [
+                      "Scrolling YouTube for hours",
+                      "Guessing what's trending",
+                      "Wave has already passed",
+                    ],
+                  },
+                  right: {
+                    header: "",
+                    color: "#FF4444",
+                    icon: "cross",
+                    items: [],
+                  },
+                },
+              },
+              {
+                type: "big-stat-reveal",
+                from: 720,
+                durationInFrames: 240,
+                data: {
+                  value: 0,
+                  color: "#FF8C00",
+                  subtitle: "Research is eating your filming time.",
+                  comparison: {
+                    before: { label: "RESEARCHING", value: "4 hrs" },
+                    after: { label: "FILMING", value: "30 min" },
+                  },
+                },
+              },
+              {
+                type: "workflow-pipeline",
+                from: 1200,
+                durationInFrames: 360,
+                data: {
+                  header: "Viral Outlier Pipeline",
+                  status: "ACTIVE",
+                  rows: [
+                    [
+                      { label: "YouTube API", sub: "Intake" },
+                      { label: "Niche Filter", sub: "Your Topic" },
+                      { label: "Apify Scraper", sub: "Extract", glow: true },
+                    ],
+                    [
+                      { label: "Transcript + Thumb", sub: "Parse" },
+                      { label: "LLM Analysis", sub: "Claude", glow: true },
+                      { label: "Outlier Ranked", sub: "Scored" },
+                    ],
+                  ],
+                },
+              },
+              {
+                type: "kpi-dashboard",
+                from: 1860,
+                durationInFrames: 240,
+                data: {
+                  header: "Enterprise-Grade Foundation",
+                  status: "LIVE",
+                  cards: [
+                    { label: "Uptime", value: 99, suffix: "%", color: "#00FF88", tickRange: [-4, 0] },
+                    { label: "Workflows Shipped", value: 12, suffix: "+", color: "#00D4FF" },
+                    { label: "Records Processed", value: 50, suffix: "K+", color: "#00D4FF" },
+                  ],
+                  sparkline: true,
+                },
+              },
+            ],
+            textStrip: {
+              labels: [],
+            },
+            lowerThirds: [
+              {
+                name: "Milan",
+                title: "Co-Founder, True Horizon",
+                from: 45,
+                durationInFrames: 165,
+              },
+            ],
+          } as BRollConfig,
+        }}
+      />
+
       <Composition
         id="DynamicShort"
         component={DynamicShort}
