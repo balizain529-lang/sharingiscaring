@@ -1,0 +1,127 @@
+{
+  "name": "B-Roll Form Intake v3 — OpenRouter + Groq",
+  "nodes": [
+    {
+      "id": "form-1",
+      "name": "B-Roll Request Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [200, 300],
+      "parameters": {
+        "formTitle": "B-Roll Scene Generator",
+        "formDescription": "Generate animated B-roll graphics from a transcript. Fill in the details and submit.",
+        "formFields": {
+          "values": [
+            { "fieldLabel": "Content Type", "fieldType": "dropdown", "requiredField": true, "fieldOptions": { "values": [{ "option": "technical-walkthrough" }, { "option": "case-study" }, { "option": "podcast" }] } },
+            { "fieldLabel": "Transcript", "fieldType": "textarea", "requiredField": true, "placeholder": "Paste full transcript with timestamps..." },
+            { "fieldLabel": "Video URL", "fieldType": "text", "requiredField": false, "placeholder": "Google Drive share link to talking head" },
+            { "fieldLabel": "Speaker Name", "fieldType": "text", "requiredField": false, "placeholder": "e.g., Zain Bukhari" },
+            { "fieldLabel": "Company", "fieldType": "text", "requiredField": false, "placeholder": "e.g., TrueHorizon AI" },
+            { "fieldLabel": "Key Metrics (comma-separated)", "fieldType": "text", "requiredField": false, "placeholder": "e.g., 2.7M records, $722K saved" }
+          ]
+        },
+        "options": {
+          "formSubmittedText": "Your B-roll config is being generated. Check Google Drive and ClickUp for results in ~30 seconds.",
+          "respondWithData": false
+        }
+      }
+    },
+    {
+      "id": "code-map",
+      "name": "Map Form to Pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "jsCode": "const form = $input.first().json;\nconst metrics = form['Key Metrics (comma-separated)'] ? form['Key Metrics (comma-separated)'].split(',').map(m => m.trim()) : [];\nreturn [{ json: { body: { contentType: form['Content Type'] || 'technical-walkthrough', transcript: form['Transcript'], videoUrl: form['Video URL'] || '', speakerName: form['Speaker Name'] || '', company: form['Company'] || '', metrics, title: (form['Speaker Name'] || 'Untitled') + ' — ' + (form['Content Type'] || 'B-Roll') } } }];"
+      }
+    },
+    {
+      "id": "code-prompt",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst contentType = body.contentType || 'technical-walkthrough';\nconst FLOWS = {\n  'technical-walkthrough': '5 scenes: Hook(big-stat-reveal) -> Speaker(person-scorecard) -> HowItWorks(workflow-pipeline) -> Results(data-table/kpi-dashboard) -> Arch+CTA(node-graph+cta-comment)',\n  'case-study': '6 scenes: HookStat(big-stat-reveal) -> ClientIntro(person-scorecard) -> Challenge(comparison-split) -> Solution(timeline-steps) -> Results(kpi-dashboard) -> Trust+CTA(logo-endorsement+cta-comment)',\n  'podcast': '4-6 scenes: GuestIntro(person-scorecard) -> KeyStat(big-stat-reveal) -> TopicViz(varies) -> CTA(cta-comment)'\n};\nconst systemPrompt = `B-roll scene generator for CUTAWAY format. Output JSON: { \"meta\": { \"contentType\": \"${contentType}\", \"title\": \"<title>\", \"fps\": 30, \"width\": 1080, \"height\": 1920, \"talkingHeadUrl\": \"${body.videoUrl || ''}\" }, \"scenes\": [{ \"type\": \"<type>\", \"from\": <frame>, \"durationInFrames\": <dur>, \"data\": {...} }], \"textStrip\": { \"labels\": [...] } }\\n\\nFlow: ${FLOWS[contentType]}\\n\\nASSET HINTS: workflow-pipeline/node-graph nodes can have icon: \"mdi:database\". logo-endorsement logos: just set name (Brandfetch fills imageUrl). backgroundVideo.query: triggers Pexels enrichment.\\n\\nDIAGNOSTIC: durationInFrames 180-360 (6-12s). Adjacent scenes overlap 16+ frames. Percentages>95 need tickRange. No empty comparison-split sides. Realistic numbers.\\n\\nTypes: big-stat-reveal({value,prefix?,suffix?,color,subtitle}), person-scorecard({name,title,badges[{value,label}]}), kpi-dashboard({header,cards[{label,value,color,tickRange?}]}), workflow-pipeline({header,rows[[{label,sub?,glow?,icon?}]]}), data-table({header,table:{columns,rows}}), node-graph({header,nodes[{label,x,y,color,icon?}],edges[{from,to}]}), timeline-steps({header,steps[{label,status}]}), comparison-split({left:{header,color,icon,items},right:{header,color,icon,items}}), logo-endorsement({header,logos[{name,imageUrl?}]}), cta-comment({action,keyword})\\n\\nframe=sec*30. Colors: #00D4FF #00FF88 #FF4444 #FF8C00 #8B5CF6. Output ONLY JSON.`;\nconst context = [body.speakerName ? `Speaker: ${body.speakerName}` : '', body.company ? `Company: ${body.company}` : '', body.metrics?.length ? `Metrics: ${body.metrics.join(', ')}` : ''].filter(Boolean).join('\\n');\nconst userMessage = `${context ? context + '\\n\\n' : ''}Transcript:\\n${body.transcript}`;\nreturn [{ json: { systemPrompt, userMessage, contentType, videoUrl: body.videoUrl || '', title: body.title || 'Untitled' } }];"
+      }
+    },
+    {
+      "id": "openrouter-claude",
+      "name": "OpenRouter — Claude Scene Gen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $vars.OPENROUTER_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "HTTP-Referer", "value": "https://github.com/balizain529-lang/sharingiscaring" },
+            { "name": "X-Title", "value": "B-Roll Form Intake" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'anthropic/claude-sonnet-4', max_tokens: 8000, messages: [{ role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.userMessage }] }) }}",
+        "options": { "timeout": 120000 }
+      }
+    },
+    {
+      "id": "code-parse",
+      "name": "Parse Scene JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 300],
+      "parameters": {
+        "jsCode": "const prev = $('Build Claude Prompt').first().json;\nconst response = $input.first().json;\nconst content = response.choices?.[0]?.message?.content || response.content?.[0]?.text || '';\nlet config;\ntry { config = JSON.parse(content); }\ncatch (e) { const m = content.match(/\\{[\\s\\S]*\\}/); if (m) config = JSON.parse(m[0]); else throw new Error('Failed to parse: ' + content.substring(0, 300)); }\nconst totalFrames = config.scenes.reduce((max, s) => Math.max(max, s.from + s.durationInFrames), 0);\nif (!config.meta || !config.scenes?.length) throw new Error('Invalid config');\nreturn [{ json: { config, totalFrames, totalSeconds: (totalFrames / 30).toFixed(1), sceneCount: config.scenes.length, sceneTypes: config.scenes.map(s => s.type), title: prev.title, contentType: prev.contentType, generatedAt: new Date().toISOString() } }];"
+      }
+    },
+    {
+      "id": "google-drive-save",
+      "name": "Save Config to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1400, 200],
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ $json.contentType + '_' + $json.title.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + '.json' }}",
+        "driveId": { "__rl": true, "mode": "list", "value": "myDrive" },
+        "folderId": { "__rl": true, "mode": "list", "value": "root" },
+        "inputDataFieldName": "={{ JSON.stringify($json.config, null, 2) }}",
+        "options": { "mimeType": "application/json" }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "clickup-task",
+      "name": "Create ClickUp Review Task",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [1400, 420],
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "list": "={{ $vars.CLICKUP_LIST_ID }}",
+        "name": "=Review B-Roll: {{ $json.title }} ({{ $json.contentType }})",
+        "additionalFields": {
+          "content": "=## B-Roll Config Generated (Form Intake)\\n\\n**Type:** {{ $json.contentType }}\\n**Duration:** {{ $json.totalSeconds }}s\\n**Scenes:** {{ $json.sceneCount }} ({{ $json.sceneTypes.join(', ') }})\\n\\n### Next Steps\\n1. Open scene config JSON from Google Drive\\n2. Load into Remotion Studio (DynamicCutaway composition)\\n3. Add talking head video\\n4. Preview, adjust timing, render MP4\\n\\n**Generated:** {{ $json.generatedAt }}",
+          "priority": 3,
+          "status": "to review"
+        }
+      },
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "B-Roll Request Form": { "main": [[{ "node": "Map Form to Pipeline", "type": "main", "index": 0 }]] },
+    "Map Form to Pipeline": { "main": [[{ "node": "Build Claude Prompt", "type": "main", "index": 0 }]] },
+    "Build Claude Prompt": { "main": [[{ "node": "OpenRouter — Claude Scene Gen", "type": "main", "index": 0 }]] },
+    "OpenRouter — Claude Scene Gen": { "main": [[{ "node": "Parse Scene JSON", "type": "main", "index": 0 }]] },
+    "Parse Scene JSON": { "main": [[{ "node": "Save Config to Drive", "type": "main", "index": 0 }, { "node": "Create ClickUp Review Task", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
