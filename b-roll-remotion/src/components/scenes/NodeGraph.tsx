@@ -94,6 +94,9 @@ export const NodeGraph: React.FC<{ data: NodeGraphScene["data"] }> = ({ data }) 
           const delay = 6 + i * 8;
           const np = spring({ frame: Math.max(0, frame - delay), fps, config: { damping: 10, stiffness: 200 } });
           const g = n.glow ? Math.sin(frame * 0.09 + i * 2) * 0.3 + 0.7 : 0;
+          const iconUrl = n.icon
+            ? `https://api.iconify.design/${n.icon}.svg?color=${encodeURIComponent(n.color)}`
+            : null;
           return (
             <div key={n.label} style={{
               position: "absolute", left: `${n.x}%`, top: `${n.y}%`,
@@ -105,7 +108,13 @@ export const NodeGraph: React.FC<{ data: NodeGraphScene["data"] }> = ({ data }) 
                 borderRadius: 8, padding: "8px 14px",
                 fontSize: 15, fontWeight: 700, color: "#fff", whiteSpace: "nowrap",
                 boxShadow: n.glow ? `0 0 ${14 * g}px ${n.color}55` : "none",
-              }}>{n.label}</div>
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                {iconUrl && (
+                  <img src={iconUrl} alt="" style={{ width: 18, height: 18 }} />
+                )}
+                <span>{n.label}</span>
+              </div>
             </div>
           );
         })}

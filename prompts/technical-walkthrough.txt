@@ -56,6 +56,26 @@ Transcript mapping triggers:
   }
 }
 
+## Asset Enrichment Hints (n8n auto-fills these)
+
+When you reference assets, use these conventions — n8n will populate URLs/IDs:
+- **Icons in workflow/graph nodes:** Set `icon: "<iconify-name>"` on `WorkflowPipelineScene` row items and `NodeGraphScene` nodes. Examples: `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, `"lucide:cpu"`, `"lucide:cloud"`. Browse at icones.js.org.
+- **Logos:** In `LogoEndorsementScene`, set `name` per logo. n8n will look up `imageUrl` via Brandfetch.
+- **Background video:** Add `backgroundVideo: { query: "data center server room", opacity: 0.15 }` to any scene for low-opacity stock video behind graphics. n8n fetches from Pexels (then falls through Pixabay/Mixkit/Coverr).
+
+## First-Pass Diagnostic — walk through before outputting
+
+Before returning the JSON, mentally check:
+- Any cutaway with `durationInFrames` < 180? (too rushed — bump to 180+ or merge with adjacent)
+- Any cutaway with `durationInFrames` > 360? (will feel static — split or shorten)
+- Adjacent cutaways without 16+ frame overlap? (zero peek-through — extend earlier scene's `durationInFrames` by 16)
+- Percentages > 95 in a `kpi-dashboard` card without `tickRange` set? (live tick will overflow — set `tickRange: [-3, 0]`)
+- `comparison-split` with one empty side? (will look broken — fill or use a different scene type)
+- Numbers that read as inflated for a small team? (>$10M ARR, >1M users — scale to the actual business)
+- `workflow-pipeline` or `node-graph` with text-only nodes? (add `icon: "mdi:..."` to make it visually richer)
+
+If a flag fires, adjust before output. If you intentionally chose to keep something flagged, include `_polishNotes: "<reason>"` on that scene.
+
 ## Rules
 
 1. Scenes play sequentially — each scene's `from` starts after the previous ends

@@ -61,6 +61,26 @@ Transcript mapping triggers:
   }
 }
 
+## Asset Enrichment Hints (n8n auto-fills these)
+
+- **Logos:** In `LogoEndorsementScene` (Trust + CTA scene), set client `name`. n8n will populate `imageUrl` via Brandfetch.
+- **Icons in workflow/graph nodes:** Use Iconify naming on solution/architecture scenes — `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, etc.
+- **Background video:** Add `backgroundVideo: { query: "<scene mood>", opacity: 0.15 }` for cutaways that need depth.
+
+## First-Pass Diagnostic — walk through before outputting
+
+Before returning the JSON, check:
+- Any cutaway with `durationInFrames` < 180? (too rushed)
+- Any cutaway with `durationInFrames` > 360? (will feel static)
+- Adjacent cutaways without 16+ frame overlap? (peek-through risk)
+- Percentages > 95 without `tickRange` set? (will overflow)
+- `comparison-split` with one empty side? (looks broken)
+- "Before" metrics worse than "after" in `comparison-split`? (verify direction is correct)
+- `LogoEndorsement` with logos but no client `name` set? (Brandfetch needs `name`)
+- `person-scorecard` badges that are aspirational not actual? (use real numbers from the interview)
+
+If a flag fires, adjust OR include `_polishNotes: "<reason>"` on the scene.
+
 ## Rules
 
 1. Scenes play sequentially — no overlap

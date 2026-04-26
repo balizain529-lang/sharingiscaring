@@ -68,3 +68,14 @@ When actual logo files aren't available, render text-based logo placeholders:
 - **As seen in** — "FEATURED IN" + media outlet logos
 - **Partner grid** — "INTEGRATION PARTNERS" + API logos
 - **With ratings** — stars or score beneath each logo
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| All logos are text fallbacks | No `imageUrl` populated | n8n Brandfetch enrichment auto-fills `imageUrl` from company `name`; verify enrichment node ran |
+| Logos look stretched / distorted | Container not constraining aspect ratio | Use `objectFit: contain` on `<img>`, `maxHeight: 40px`, `maxWidth: 80%` |
+| Logos appear all at once | Default 4-6 frame stagger too tight | Use 6-8 frames between logos; longer reveal feels more deliberate |
+| Grid feels uneven | Mixed image sizes + text fallbacks | Pad each cell consistently (`padding: 20px 12px`), center via flex |
+| Header underline too dominant | Full-width gradient line | Cap underline at ~60% width, position center; reduces visual weight |
+| Text-only fallbacks read inconsistent | Each company name renders at different visual weight | Use uniform `fontSize: 18, fontWeight: 700, color: #fff`; serves as a clean fallback |

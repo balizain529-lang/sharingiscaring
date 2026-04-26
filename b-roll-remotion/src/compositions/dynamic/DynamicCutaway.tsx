@@ -108,9 +108,24 @@ const CutawayOverlay: React.FC<{ scene: Scene; index: number }> = ({ scene, inde
   const Component = SCENE_REGISTRY[scene.type];
   if (!Component) return null;
 
+  const bg = scene.backgroundVideo;
+  const bgOpacity = bg?.opacity ?? 0.15;
+
   return (
     <AbsoluteFill style={{ opacity }}>
-      <Component data={scene.data} />
+      {/* Optional stock-footage background layer (Pexels/Pixabay/etc., enriched by n8n) */}
+      {bg?.url && (
+        <AbsoluteFill style={{ opacity: bgOpacity, zIndex: 0 }}>
+          <OffthreadVideo
+            src={resolveVideoSrc(bg.url)}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </AbsoluteFill>
+      )}
+      <AbsoluteFill style={{ zIndex: 1 }}>
+        <Component data={scene.data} />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

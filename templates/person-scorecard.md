@@ -59,3 +59,14 @@
 - **4 badges** — 2x2 grid instead of row
 - **No strip** — clean ending, badges are the last element
 - **With photo** — circular headshot above the name (future)
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Name reads small at horizontal | Default 52px sized for vertical | Use 64-72px at 1920×1080 |
+| Badges feel disconnected from name | Default gap 16px, weak hierarchy | Tighten gap to 12px; add subtle divider line above badges |
+| Badge values inflated (e.g., "$100B+") | Borrowed from CPO templates, not yours | Match real numbers — "50+ workflows", "5 years AI engineering" |
+| Bottom strip feels redundant | Repeats name with credential | Skip `bottomStrip` if name + title + badges already convey authority |
+| Badges static after pop | No continuous motion | Component now adds `floatY` drift on settled badges |
+| Title color too saturated against name | Pure teal on white name competes | Reduce title to teal at 0.85 opacity OR use rgba(255,255,255,0.7) muted |

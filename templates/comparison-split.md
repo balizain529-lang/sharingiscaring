@@ -54,3 +54,16 @@
 - **Horizontal split** — top vs bottom instead of left vs right
 - **3-column** — "Before / During / After" or "Competitor A / Us / Competitor B"
 - **Animated transition** — left side shown first, then "swipes" to reveal right side
+
+## Polish Checklist
+
+Common first-pass issues + fixes (from LEARNINGS.md):
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Orphan red ✕ on right side | `right.items: []` left half-width column rendering | Component now hides right column when empty; centers left |
+| Items appear all at once | Stagger delay too short for horizontal aspect | Use `i * 14` not `i * 8` between item delays |
+| Static after items appear | No continuous motion once springs settle | Float drift kicks in (see `MOTION.continuous.floatY` in `motion-presets.ts`) |
+| Left auto-dim too aggressive | `leftDim: 0.5` makes Before content unreadable | Bump to 0.65 if the Before items are critical to the message |
+| Icons feel heavy at horizontal | Default emoji size too small | Use 34px for headers, 22px for item bullets at 1920×1080 |
+| One side too "loud" | Right side pulsing glow + left dim creates imbalance | Reduce `rightGlow` multiplier or remove pulsing on shorter scenes (<6s) |

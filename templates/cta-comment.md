@@ -47,3 +47,14 @@
 - **DM CTA** — "DM ME 'BUILD'" with a fake DM bubble
 - **Multi-keyword** — "Comment PROCUREMENT or AUTOMATION" with both words glowing
 - **With subtitle** — adds a muted line below the keyword ("I'll send you the full 10-min breakdown")
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Keyword too long for input pill | "PRE-MEETING-INTELLIGENCE" overflows | Cap keyword at 12 chars; use single word, all-caps |
+| Cursor blinks too fast | Default 14-frame toggle | Slow to 18-20 frames for calmer feel |
+| Avatar gradient distracts | Default orange gradient is loud | Use brand teal-blue gradient OR muted gray for less distraction |
+| Action + keyword reads cluttered | Both lines are 46px weight 900 | Make action smaller (36px) and keyword larger (52-60px) — keyword is the verb-thing |
+| Box pulses too aggressively | Default `glowPulse` rate at 0.1 | Slow to 0.06-0.08 for ambient feel; CTA should invite, not yell |
+| Subtitle competes with keyword | Same color hierarchy | Keep subtitle muted (rgba(255,255,255,0.5), 18px) |

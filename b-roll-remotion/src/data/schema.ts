@@ -64,6 +64,19 @@ interface SceneBase {
   type: SceneType;
   from: number;
   durationInFrames: number;
+  /** Optional looping stock video behind the scene at low opacity. URL populated by n8n enrichment. */
+  backgroundVideo?: {
+    /** Search query (e.g., "data center", "abstract tech"). Used by n8n to fetch from Pexels/Pixabay/Mixkit/Coverr. */
+    query: string;
+    /** Final URL after enrichment. Populated by n8n, not Claude. */
+    url?: string;
+    /** Background opacity 0-1. Default 0.15. */
+    opacity?: number;
+    /** Source attribution. Defaults to "pexels" → fallback chain. */
+    source?: "pexels" | "pixabay" | "mixkit" | "coverr";
+  };
+  /** Optional polish notes from Claude flagging potential first-pass issues. */
+  _polishNotes?: string;
 }
 
 // ─── Scene Types ────────────────────────────────────────────────────
@@ -121,6 +134,8 @@ export interface WorkflowPipelineScene extends SceneBase {
       sub?: string;
       glow?: boolean;
       color?: string;
+      /** Iconify icon name (e.g., "mdi:database", "ri:brain-line"). Renders inline. */
+      icon?: string;
     }[][];
     stats?: { label: string; value: string }[];
     title?: { text: string; accentWord?: string };
@@ -159,6 +174,8 @@ export interface NodeGraphScene extends SceneBase {
       y: number;
       color: string;
       glow?: boolean;
+      /** Iconify icon name. Renders next to label. */
+      icon?: string;
     }[];
     edges: { from: number; to: number; color?: string }[];
     statusBar?: { label: string; value: string }[];

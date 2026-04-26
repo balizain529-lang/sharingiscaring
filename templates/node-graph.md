@@ -76,3 +76,15 @@ Each edge has: from node position, to node position, color, draw delay.
 - **6+ nodes** — circular or grid arrangement
 - **With labels on edges** — "auth", "data", "events" on connector lines
 - **Animated build sequence** — nodes appear as if "deploying" one by one with checkmark
+- **With icons** — set `icon: "mdi:cloud-cog"` on nodes to render Iconify icon next to label
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Nodes feel sparse / abstract | Text-only labels at small sizes | Add `icon: "mdi:database"` (Iconify name) per node — renders SVG inline |
+| Edges look static | Travelling dot only fires when `ep > 0.5` | Verify dot loop period is appropriate (default 30f); shorten for energetic feel |
+| Hard to tell which node is "primary" | No visual hierarchy | Use `glow: true` on 1-2 hub nodes; vary colors purposefully (teal=processing, green=success, orange=risk) |
+| Node positions look random | x/y picked without grid logic | Aim for symmetry — pairs at same y, hub nodes in center; sketch on paper first |
+| Labels overflow the node box | Long names + small minWidth | Use 3-word max labels; abbreviate if needed (e.g., "ML" not "Machine Learning") |
+| Particles distracting from nodes | Too many particles or too bright | Cap at 15, opacity ≤ 0.06, drift slowly (sin rate 0.025) |

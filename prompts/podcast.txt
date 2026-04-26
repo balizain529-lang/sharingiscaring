@@ -60,6 +60,24 @@ Key difference: Podcasts are topic-driven, not narrative-driven. Look for:
   }
 }
 
+## Asset Enrichment Hints (n8n auto-fills these)
+
+- **Icons:** Use Iconify names on workflow/graph nodes — `"mdi:database"`, `"ri:brain-line"`, `"lucide:cpu"`. Browse at icones.js.org.
+- **Logos:** In `LogoEndorsement`, set company `name` per logo. n8n populates `imageUrl` via Brandfetch.
+- **Background video:** `backgroundVideo: { query: "podcast studio mic", opacity: 0.15 }` adds atmospheric loop.
+
+## First-Pass Diagnostic — walk through before outputting
+
+Podcast format is conversation-driven, but still check:
+- Any cutaway with `durationInFrames` < 180? (too rushed for podcast pacing — bump to 240+)
+- Any cutaway with `durationInFrames` > 360? (podcast cutaways should breathe but not stall)
+- Adjacent cutaways without 16+ frame overlap? (peek-through risk)
+- Did you pick a `Key Stat` that's actually shocking? (a "$5M license replaced for free" lands; "12% increase in efficiency" doesn't)
+- Are middle scenes matching topics that came up in conversation, or generic filler? (must illustrate what's being discussed)
+- Guest credentials in `person-scorecard` — real or aspirational? (use actual numbers from intro)
+
+If a flag fires, adjust OR include `_polishNotes: "<reason>"` on the scene.
+
 ## Rules
 
 1. Scenes play sequentially — no overlap

@@ -62,3 +62,14 @@ Pulsing green dot (sin wave opacity 0.6-1.0) next to "LIVE" label.
 - **No sparkline** — just cards + title
 - **No flow row** — cards + sparkline + title
 - **Bar chart** instead of sparkline (vertical bars with staggered height animation)
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Percentages tick above 100% | `value: 99` with default ±1 tickRange | Set `tickRange: [-3, 0]` per-card OR use `defaultTickRange()` from `motion-presets.ts` |
+| Numbers feel inflated for small team | "2.7M records" reads pretentious | Scale to actual business — "50K+" or "12K active users" reads honest |
+| Cards static after count-up | Settled too quickly, no live tick | Component now adds settled tick + breathe scale (`MOTION.continuous.breathe`) |
+| Dashboard reads "B2B/corporate" | Multi-card grid signals enterprise | For creator content, use `big-stat-reveal` (single hero number) instead |
+| Cards too small at horizontal | Default `padding: 18px 14px` was vertical-sized | Use `padding: 24px 18px` and `fontSize: 52` for values at 1920×1080 |
+| Sparkline draws too fast | Default damping makes draw feel rushed | Use `MOTION.spring.settle` (damping 30) for slower deliberate draw |

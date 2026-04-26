@@ -70,4 +70,15 @@
 - **2 rows of nodes** — top row feeds into bottom row (like current EP² Workflow)
 - **Single row** — simpler 3-5 node horizontal chain
 - **Vertical flow** — nodes stack top-to-bottom with downward connectors
-- **With icons** — emoji or Lottie inside each node box
+- **With icons** — Iconify icon inside each node box (`icon: "mdi:database"`, `"ri:brain-line"`, etc.)
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Nodes are text-only and bland | No icon support | Set `icon: "mdi:database"` (or any Iconify name) on node items — renders SVG above label |
+| Title pinned at top with empty space below | `marginTop: auto` + flex column at horizontal aspect | Drop the pin, use `justifyContent: center` + `gap: 32` on root container |
+| Pipeline compressed at top of frame | Same root issue as above | Same fix; also bump padding to `48px 64px 40px` for horizontal |
+| Connector dots travel too fast | Default 24-frame loop reads frantic | Bump to 30-36 frames for 6+ second cutaways |
+| Static after entrance | No continuous motion | Component now adds `breathe` scale on settled nodes |
+| Glow overpowers other nodes | One `glow: true` node makes others look dim | Limit to 1 glowing node per row; use accent color sparingly |

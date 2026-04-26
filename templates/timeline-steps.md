@@ -62,3 +62,14 @@
 - **With durations** — "2 weeks", "3 days" shown between steps
 - **Milestone markers** — diamonds instead of circles for key milestones
 - **Animated progress** — steps light up in sequence like a loading sequence
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Steps reveal too slowly | Default 12-15f interval drags for 6s cutaway | Use 8-10 frames between steps; speeds the build |
+| All steps the same | No status differentiation | Mark some `complete` (✓ green), one `active` (pulsing teal), rest `pending` (muted) |
+| Connector lines look thin/weak | Default 2px width disappears at horizontal | Bump to 3px and add subtle gradient (start color → end color) |
+| Active step doesn't stand out | Pulsing glow too subtle | Increase glow to `boxShadow: 0 0 ${16 * glow}px ${TEAL}` |
+| Subtitles distract from labels | Same weight as labels | Keep subtitle muted (rgba 0.4 opacity, smaller font) |
+| Progress bar duplicates step status | Both convey completion | Skip progress bar OR show progress only if no `active` step |

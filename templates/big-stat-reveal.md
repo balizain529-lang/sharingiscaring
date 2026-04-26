@@ -60,3 +60,14 @@
 - **Stat + icon** — Lottie animation or emoji above the number
 - **Countdown** — number counts DOWN (good for "reduced from X to Y")
 - **With context line** — "That's more than the GDP of..." beneath subtitle
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Giant "0" rendered | `value: 0` for comparison-only mode | Component now skips hero number when `value === 0` |
+| Number reads as inflated | "10M+ records" for a small team | Scale numbers to actual business — "50K+" reads honest |
+| Number too small at horizontal | Default `fontSize: 64` was sized for vertical | Use 180 for hero at 1920×1080 |
+| Subtitle wraps awkwardly | Long subtitle, narrow `maxWidth` | Bump `maxWidth: 1200` for horizontal; keep ≤90 chars |
+| Comparison row too cramped | Default gap 24px feels tight at horizontal | Use `gap: 48`, `fontSize: 64` for values |
+| Hero number static after count-up | No continuous motion | Pulsing `textShadow` runs via `MOTION.continuous.glowPulse` |

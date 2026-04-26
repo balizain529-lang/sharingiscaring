@@ -19,9 +19,12 @@ const ScanLine: React.FC = () => {
   );
 };
 
+const iconifyUrl = (icon: string, color: string): string =>
+  `https://api.iconify.design/${icon}.svg?color=${encodeURIComponent(color)}`;
+
 const WorkflowNode: React.FC<{
-  label: string; sub?: string; delay: number; glow?: boolean; color?: string;
-}> = ({ label, sub, delay, glow, color = TEAL }) => {
+  label: string; sub?: string; delay: number; glow?: boolean; color?: string; icon?: string;
+}> = ({ label, sub, delay, glow, color = TEAL, icon }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const p = spring({ frame: Math.max(0, frame - delay), fps, config: { damping: 10, stiffness: 200 } });
@@ -30,6 +33,7 @@ const WorkflowNode: React.FC<{
   const g = glow ? Math.sin(frame * 0.1 + delay) * 0.35 + 0.65 : 0;
   const breathe = p >= 1 ? Math.sin(frame * 0.08 + delay) * 0.015 + 1 : 1;
   const scale = entranceScale * breathe;
+  const iconColor = glow ? color : "#FFFFFF";
 
   return (
     <div style={{
@@ -37,8 +41,16 @@ const WorkflowNode: React.FC<{
       background: CARD_BG, border: `1.5px solid ${glow ? color : BORDER}`,
       borderRadius: 12, padding: "18px 26px", textAlign: "center", minWidth: 160,
       boxShadow: glow ? `0 0 ${24 * g}px ${color}66, inset 0 0 ${10 * g}px ${color}14` : "none",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
     }}>
-      <div style={{ fontSize: 22, fontWeight: 800, color: glow ? color : "#fff", marginBottom: 4, letterSpacing: "0.01em" }}>{label}</div>
+      {icon && (
+        <img
+          src={iconifyUrl(icon, iconColor)}
+          alt=""
+          style={{ width: 36, height: 36, opacity: glow ? 0.7 + 0.3 * g : 0.85 }}
+        />
+      )}
+      <div style={{ fontSize: 22, fontWeight: 800, color: glow ? color : "#fff", letterSpacing: "0.01em" }}>{label}</div>
       {sub && <div style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>{sub}</div>}
     </div>
   );
@@ -103,7 +115,7 @@ export const WorkflowPipeline: React.FC<{ data: WorkflowPipelineScene["data"] }>
             return (
               <React.Fragment key={ni}>
                 <WorkflowNode label={node.label} sub={node.sub} delay={delay}
-                  glow={node.glow} color={node.color} />
+                  glow={node.glow} color={node.color} icon={node.icon} />
                 {ni < row.length - 1 && <DottedLine delay={lineDelay} color={node.color || TEAL} />}
               </React.Fragment>
             );

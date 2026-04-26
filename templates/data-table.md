@@ -85,3 +85,14 @@
 - **2-column table** — simpler, name + value
 - **Color-coded rows** — entire row bg tinted by risk/status level
 - **With sparklines** — mini inline charts in the last column per row
+
+## Polish Checklist
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Rows too cramped | Default `padding: 8px 4px` per row | Use `padding: 12px 8px` at horizontal aspect |
+| Active-row scan too fast | 14-frame interval feels frantic | Bump to 18-20 frames per row for calmer scan |
+| All rows same color | No risk/severity hierarchy | Use `row.color` per row (red=high, orange=med, green=low) |
+| Hero stat number static | No glow after count-up settles | Component adds pulsing `textShadow` via `MOTION.continuous.glowPulse` |
+| Table feels like a spreadsheet | Default styling reads "data dump" | Add scanning highlight + `TableScan` overlay; one row should always feel "live" |
+| Numbers + columns don't align | Default `justify-content: flex-start` on text | First column flex-1 left-aligned; numeric columns fixed width, right-aligned |
