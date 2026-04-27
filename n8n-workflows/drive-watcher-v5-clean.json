@@ -1,0 +1,332 @@
+{
+  "name": "B-Roll Drive Watcher v5 — Clean Import",
+  "nodes": [
+    {
+      "id": "drive-trigger",
+      "name": "Watch B-Roll Drop Folder",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [120, 400],
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "triggerOn": "specificFolder",
+        "folderToWatch": { "__rl": true, "mode": "list", "value": "" },
+        "event": "fileCreated",
+        "options": { "includeSubfolders": true }
+      }
+    },
+    {
+      "id": "code-detect",
+      "name": "Detect File Type + Content Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 400],
+      "parameters": {
+        "jsCode": "const file = $input.first().json;\nconst name = file.name || '';\nconst mime = file.mimeType || '';\nconst isVideo = mime.startsWith('video/') || /\\.(mp4|mov|webm|mkv)$/i.test(name);\nconst isText = /\\.(txt|md|srt)$/i.test(name);\nif (!isVideo && !isText) throw new Error('Unsupported file type: ' + name);\nconst parents = (file.parents || []).map(p => (p.name || '').toLowerCase());\nconst folderPath = parents.join('/').toLowerCase();\nlet contentType = 'technical-walkthrough';\nif (folderPath.includes('case-study')) contentType = 'case-study';\nelse if (folderPath.includes('podcast')) contentType = 'podcast';\nconst baseName = name.replace(/\\.[^.]+$/, '');\nconst parts = baseName.split('_').map(p => p.trim());\nlet speakerName = '', company = '', title = baseName;\nif (parts.length >= 3) { speakerName = parts[0]; company = parts[1]; title = parts.slice(2).join(' '); }\nelse if (parts.length === 2) { speakerName = parts[0]; title = parts[1]; }\nreturn [{ json: { fileId: file.id, fileName: name, isVideo, isText, contentType, speakerName, company, title, mimeType: mime } }];"
+      }
+    },
+    {
+      "id": "if-video",
+      "name": "Is Video?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [560, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "video-check-1",
+              "leftValue": "={{ $json.isVideo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "drive-download-video",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [780, 280],
+      "parameters": {
+        "operation": "download",
+        "fileId": { "__rl": true, "mode": "id", "value": "={{ $json.fileId }}" },
+        "options": {}
+      }
+    },
+    {
+      "id": "groq-transcribe",
+      "name": "Groq Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 280],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $vars.GROQ_API_KEY }}" }
+          ]
+        },
+        "contentType": "multipart-form-data",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "parameterType": "formData", "value": "whisper-large-v3-turbo" },
+            { "name": "response_format", "parameterType": "formData", "value": "verbose_json" },
+            { "name": "file", "parameterType": "formBinaryData", "inputDataFieldName": "data" }
+          ]
+        },
+        "options": { "timeout": 300000 }
+      }
+    },
+    {
+      "id": "code-format-whisper",
+      "name": "Format Whisper Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 280],
+      "parameters": {
+        "jsCode": "const w = $input.first().json;\nconst meta = $('Detect File Type + Content Type').first().json;\nlet transcript = '';\nif (w.segments && w.segments.length) {\n  transcript = w.segments.map(s => {\n    const m = Math.floor(s.start / 60);\n    const sec = Math.floor(s.start % 60);\n    return `[${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}] ${s.text.trim()}`;\n  }).join('\\n');\n} else { transcript = w.text || ''; }\nreturn [{ json: { contentType: meta.contentType, transcript, speakerName: meta.speakerName, company: meta.company, title: meta.title, fileId: meta.fileId, fileName: meta.fileName } }];"
+      }
+    },
+    {
+      "id": "drive-download-text",
+      "name": "Download Transcript",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [780, 520],
+      "parameters": {
+        "operation": "download",
+        "fileId": { "__rl": true, "mode": "id", "value": "={{ $json.fileId }}" },
+        "options": {}
+      }
+    },
+    {
+      "id": "code-format-text",
+      "name": "Format Text Transcript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 520],
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst meta = $('Detect File Type + Content Type').first().json;\nlet transcript = '';\nif (item.binary && item.binary.data) {\n  transcript = Buffer.from(item.binary.data.data, 'base64').toString('utf-8');\n} else if (item.json && item.json.data) {\n  transcript = item.json.data;\n}\nif (!transcript || transcript.trim().length < 20) throw new Error('Transcript too short');\nreturn [{ json: { contentType: meta.contentType, transcript, speakerName: meta.speakerName, company: meta.company, title: meta.title, fileId: meta.fileId, fileName: meta.fileName } }];"
+      }
+    },
+    {
+      "id": "merge",
+      "name": "Merge Branches",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1440, 400],
+      "parameters": {
+        "mode": "append"
+      }
+    },
+    {
+      "id": "code-prompt",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 400],
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst contentType = input.contentType || 'technical-walkthrough';\nconst FLOWS = {\n  'technical-walkthrough': '5 scenes: Hook(big-stat-reveal) -> Speaker(person-scorecard) -> HowItWorks(workflow-pipeline) -> Results(data-table/kpi-dashboard) -> Arch+CTA(node-graph+cta-comment)',\n  'case-study': '6 scenes: HookStat(big-stat-reveal) -> ClientIntro(person-scorecard) -> Challenge(comparison-split) -> Solution(timeline-steps) -> Results(kpi-dashboard) -> Trust+CTA(logo-endorsement+cta-comment)',\n  'podcast': '4-6 scenes: GuestIntro(person-scorecard) -> KeyStat(big-stat-reveal) -> TopicViz(varies) -> CTA(cta-comment)'\n};\nconst systemPrompt = 'B-roll scene generator for CUTAWAY format. Output JSON: { \"meta\": { \"contentType\": \"' + contentType + '\", \"title\": \"<title>\", \"fps\": 30, \"width\": 1080, \"height\": 1920, \"talkingHeadUrl\": \"\" }, \"scenes\": [{ \"type\": \"<type>\", \"from\": <frame>, \"durationInFrames\": <dur>, \"data\": {...}, \"backgroundVideo\": { \"query\": \"...\" } }], \"textStrip\": { \"labels\": [...] }, \"lowerThirds\": [...] }\\n\\nFlow: ' + (FLOWS[contentType] || FLOWS['technical-walkthrough']) + '\\n\\nASSET HINTS: workflow-pipeline & node-graph nodes can have icon: \"mdi:database\" (Iconify). logo-endorsement: just set name (Brandfetch fills imageUrl). backgroundVideo: { query: \"data center\" } (Pexels fills url).\\n\\nDIAGNOSTIC: durationInFrames 180-360 (6-12s). Adjacent scenes overlap 16+ frames. Percentages>95 need tickRange. No empty comparison-split sides.\\n\\nTypes: big-stat-reveal({value,prefix?,suffix?,color,subtitle}), person-scorecard({name,title,badges[{value,label}]}), kpi-dashboard({header,cards[{label,value,color,tickRange?}]}), workflow-pipeline({header,rows[[{label,sub?,glow?,icon?}]]}), data-table({header,table:{columns,rows}}), node-graph({header,nodes[{label,x,y,color,icon?}],edges[{from,to}]}), timeline-steps({header,steps[{label,status}]}), comparison-split({left:{header,color,icon,items},right:{header,color,icon,items}}), logo-endorsement({header,logos[{name,imageUrl?}]}), cta-comment({action,keyword})\\n\\nframe=sec*30. Colors: #00D4FF #00FF88 #FF4444 #FF8C00 #8B5CF6. Output ONLY JSON.';\nconst context = [input.speakerName ? 'Speaker: ' + input.speakerName : '', input.company ? 'Company: ' + input.company : ''].filter(Boolean).join('\\n');\nconst userMessage = (context ? context + '\\n\\n' : '') + 'Transcript:\\n' + input.transcript;\nreturn [{ json: { ...input, systemPrompt, userMessage } }];"
+      }
+    },
+    {
+      "id": "openrouter-claude",
+      "name": "OpenRouter Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1880, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $vars.OPENROUTER_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'anthropic/claude-sonnet-4', max_tokens: 8000, messages: [{ role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.userMessage }] }) }}",
+        "options": { "timeout": 120000 }
+      }
+    },
+    {
+      "id": "code-parse",
+      "name": "Parse Scene JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2100, 400],
+      "parameters": {
+        "jsCode": "const prev = $('Build Claude Prompt').first().json;\nconst response = $input.first().json;\nconst content = (response.choices && response.choices[0] && response.choices[0].message && response.choices[0].message.content) || '';\nlet config;\ntry { config = JSON.parse(content); }\ncatch (e) {\n  const m = content.match(/\\{[\\s\\S]*\\}/);\n  if (m) config = JSON.parse(m[0]);\n  else throw new Error('Failed to parse: ' + content.substring(0, 300));\n}\nconst totalFrames = config.scenes.reduce((max, s) => Math.max(max, s.from + s.durationInFrames), 0);\nif (!config.meta || !config.scenes || !config.scenes.length) throw new Error('Invalid config');\nreturn [{ json: { config, totalFrames, totalSeconds: (totalFrames / 30).toFixed(1), sceneCount: config.scenes.length, sceneTypes: config.scenes.map(s => s.type), title: prev.title, contentType: prev.contentType, sourceFileId: prev.fileId, sourceFileName: prev.fileName, generatedAt: new Date().toISOString() } }];"
+      }
+    },
+    {
+      "id": "code-enrich-logos",
+      "name": "Enrich Logos (Brandfetch)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2320, 400],
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst config = item.config;\nconst KEY = $vars.BRANDFETCH_API_KEY;\nif (!KEY) return [{ json: item }];\nfor (const scene of config.scenes) {\n  if (scene.type !== 'logo-endorsement') continue;\n  for (const logo of scene.data.logos) {\n    if (logo.imageUrl || !logo.name) continue;\n    try {\n      const r = await fetch('https://api.brandfetch.io/v2/brands/' + encodeURIComponent(logo.name), { headers: { 'Authorization': 'Bearer ' + KEY } });\n      if (!r.ok) continue;\n      const data = await r.json();\n      const icon = (data.logos || []).find(l => l.type === 'icon') || (data.logos || [])[0];\n      const fmt = icon && ((icon.formats || []).find(f => f.format === 'svg') || (icon.formats || []).find(f => f.format === 'png') || (icon.formats || [])[0]);\n      if (fmt && fmt.src) logo.imageUrl = fmt.src;\n    } catch (e) {}\n  }\n}\nreturn [{ json: { ...item, config } }];"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "code-enrich-stock",
+      "name": "Enrich Stock Footage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2540, 400],
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst config = item.config;\nconst PEXELS = $vars.PEXELS_API_KEY;\nconst PIXABAY = $vars.PIXABAY_API_KEY;\nasync function pexels(q) { if (!PEXELS) return null; try { const r = await fetch('https://api.pexels.com/videos/search?query=' + encodeURIComponent(q) + '&per_page=3&orientation=landscape', { headers: { 'Authorization': PEXELS } }); if (!r.ok) return null; const d = await r.json(); const v = (d.videos || [])[0]; const f = v && ((v.video_files || []).find(f => f.quality === 'hd' && f.width >= 1280) || (v.video_files || [])[0]); return f ? f.link : null; } catch (e) { return null; } }\nasync function pixabay(q) { if (!PIXABAY) return null; try { const r = await fetch('https://pixabay.com/api/videos/?key=' + PIXABAY + '&q=' + encodeURIComponent(q) + '&per_page=3'); if (!r.ok) return null; const d = await r.json(); const v = (d.hits || [])[0]; return v && v.videos && (v.videos.medium && v.videos.medium.url || v.videos.small && v.videos.small.url) || null; } catch (e) { return null; } }\nfor (const scene of config.scenes) {\n  if (!scene.backgroundVideo || !scene.backgroundVideo.query || scene.backgroundVideo.url) continue;\n  const q = scene.backgroundVideo.query;\n  let url = await pexels(q);\n  if (!url) url = await pixabay(q);\n  if (url) { scene.backgroundVideo.url = url; scene.backgroundVideo.source = url.includes('pexels') ? 'pexels' : 'pixabay'; }\n}\nreturn [{ json: { ...item, config } }];"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "drive-save-config",
+      "name": "Save Config to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2760, 280],
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ 'broll_' + $json.contentType + '_' + $json.title.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + '.json' }}",
+        "driveId": { "__rl": true, "mode": "list", "value": "myDrive" },
+        "folderId": { "__rl": true, "mode": "list", "value": "" },
+        "inputDataFieldName": "={{ JSON.stringify($json.config, null, 2) }}",
+        "options": { "mimeType": "application/json" }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "http-render",
+      "name": "Trigger Render",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2760, 520],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.RENDER_API_URL }}/render",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $vars.RENDER_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ compositionId: 'DynamicCutaway', inputProps: { config: $json.config }, outputFormat: 'mp4' }) }}",
+        "options": { "timeout": 30000 }
+      }
+    },
+    {
+      "id": "code-poll",
+      "name": "Poll Render Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2980, 520],
+      "parameters": {
+        "jsCode": "const renderResp = $input.first().json;\nconst renderId = renderResp.renderId;\nconst statusUrl = $vars.RENDER_API_URL + '/status/' + renderId;\nconst downloadUrl = $vars.RENDER_API_URL + '/download/' + renderId;\nconst apiKey = $vars.RENDER_API_KEY;\nconst maxWaitMs = 900000;\nconst pollIntervalMs = 15000;\nconst start = Date.now();\nwhile (Date.now() - start < maxWaitMs) {\n  await new Promise(r => setTimeout(r, pollIntervalMs));\n  try {\n    const r = await fetch(statusUrl, { headers: { 'Authorization': 'Bearer ' + apiKey } });\n    if (!r.ok) continue;\n    const status = await r.json();\n    if (status.status === 'complete') {\n      return [{ json: { renderId, status: 'complete', downloadUrl, fileSizeMB: status.fileSizeMB } }];\n    }\n    if (status.status === 'error') throw new Error('Render failed: ' + (status.error || 'unknown'));\n  } catch (e) {\n    if (e.message && e.message.indexOf('Render failed') === 0) throw e;\n  }\n}\nthrow new Error('Render timeout after 15 minutes');"
+      }
+    },
+    {
+      "id": "http-download-mp4",
+      "name": "Download MP4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3200, 520],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.downloadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $vars.RENDER_API_KEY }}" }
+          ]
+        },
+        "options": {
+          "response": { "response": { "responseFormat": "file" } },
+          "timeout": 120000
+        }
+      }
+    },
+    {
+      "id": "drive-upload-mp4",
+      "name": "Upload MP4 to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [3420, 520],
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ 'broll_' + $('Parse Scene JSON').first().json.contentType + '_' + $('Parse Scene JSON').first().json.title.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + '.mp4' }}",
+        "driveId": { "__rl": true, "mode": "list", "value": "myDrive" },
+        "folderId": { "__rl": true, "mode": "list", "value": "" },
+        "options": { "mimeType": "video/mp4" }
+      }
+    },
+    {
+      "id": "clickup-task",
+      "name": "Create ClickUp Task",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [3640, 400],
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "list": "={{ $vars.CLICKUP_LIST_ID }}",
+        "name": "=Review B-Roll: {{ $('Parse Scene JSON').first().json.title }}",
+        "additionalFields": {
+          "content": "=B-Roll auto-generated. Source: {{ $('Parse Scene JSON').first().json.sourceFileName }}. Type: {{ $('Parse Scene JSON').first().json.contentType }}. Duration: {{ $('Parse Scene JSON').first().json.totalSeconds }}s. Scenes: {{ $('Parse Scene JSON').first().json.sceneCount }}. Generated: {{ $('Parse Scene JSON').first().json.generatedAt }}",
+          "priority": 3
+        }
+      },
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Watch B-Roll Drop Folder": { "main": [[{ "node": "Detect File Type + Content Type", "type": "main", "index": 0 }]] },
+    "Detect File Type + Content Type": { "main": [[{ "node": "Is Video?", "type": "main", "index": 0 }]] },
+    "Is Video?": {
+      "main": [
+        [{ "node": "Download Video", "type": "main", "index": 0 }],
+        [{ "node": "Download Transcript", "type": "main", "index": 0 }]
+      ]
+    },
+    "Download Video": { "main": [[{ "node": "Groq Whisper", "type": "main", "index": 0 }]] },
+    "Groq Whisper": { "main": [[{ "node": "Format Whisper Output", "type": "main", "index": 0 }]] },
+    "Format Whisper Output": { "main": [[{ "node": "Merge Branches", "type": "main", "index": 0 }]] },
+    "Download Transcript": { "main": [[{ "node": "Format Text Transcript", "type": "main", "index": 0 }]] },
+    "Format Text Transcript": { "main": [[{ "node": "Merge Branches", "type": "main", "index": 1 }]] },
+    "Merge Branches": { "main": [[{ "node": "Build Claude Prompt", "type": "main", "index": 0 }]] },
+    "Build Claude Prompt": { "main": [[{ "node": "OpenRouter Claude", "type": "main", "index": 0 }]] },
+    "OpenRouter Claude": { "main": [[{ "node": "Parse Scene JSON", "type": "main", "index": 0 }]] },
+    "Parse Scene JSON": { "main": [[{ "node": "Enrich Logos (Brandfetch)", "type": "main", "index": 0 }]] },
+    "Enrich Logos (Brandfetch)": { "main": [[{ "node": "Enrich Stock Footage", "type": "main", "index": 0 }]] },
+    "Enrich Stock Footage": { "main": [[{ "node": "Save Config to Drive", "type": "main", "index": 0 }, { "node": "Trigger Render", "type": "main", "index": 0 }]] },
+    "Trigger Render": { "main": [[{ "node": "Poll Render Status", "type": "main", "index": 0 }]] },
+    "Poll Render Status": { "main": [[{ "node": "Download MP4", "type": "main", "index": 0 }]] },
+    "Download MP4": { "main": [[{ "node": "Upload MP4 to Drive", "type": "main", "index": 0 }]] },
+    "Upload MP4 to Drive": { "main": [[{ "node": "Create ClickUp Task", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

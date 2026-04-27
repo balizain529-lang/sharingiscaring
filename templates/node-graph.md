@@ -78,6 +78,14 @@ Each edge has: from node position, to node position, color, draw delay.
 - **Animated build sequence** — nodes appear as if "deploying" one by one with checkmark
 - **With icons** — set `icon: "mdi:cloud-cog"` on nodes to render Iconify icon next to label
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "abstract network connections", "opacity": 0.22 }
+```
+
+**Suggested queries:** "abstract network connections", "geometric mesh nodes", "tech grid blueprint", "neural network animation", "circuit board glow"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

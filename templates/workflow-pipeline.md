@@ -72,6 +72,14 @@
 - **Vertical flow** — nodes stack top-to-bottom with downward connectors
 - **With icons** — Iconify icon inside each node box (`icon: "mdi:database"`, `"ri:brain-line"`, etc.)
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "abstract neural network", "opacity": 0.22 }
+```
+
+**Suggested queries:** "abstract neural network", "circuit board glow", "data flow animation", "tech grid blueprint", "node connections abstract"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

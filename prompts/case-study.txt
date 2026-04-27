@@ -61,11 +61,26 @@ Transcript mapping triggers:
   }
 }
 
-## Asset Enrichment Hints (n8n auto-fills these)
+## Asset Enrichment — REQUIRED on every scene
+
+Every scene MUST include `backgroundVideo.query` for production quality. Solid color backgrounds read as B2B/templated.
+
+- **Background video (REQUIRED):** Add `backgroundVideo: { query: "<2-4 word search>", opacity: 0.22 }` to every scene. Match the emotional tone, not literal content. Default `opacity: 0.22`, range 0.18-0.28.
 
 - **Logos:** In `LogoEndorsementScene` (Trust + CTA scene), set client `name`. n8n will populate `imageUrl` via Brandfetch.
-- **Icons in workflow/graph nodes:** Use Iconify naming on solution/architecture scenes — `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, etc.
-- **Background video:** Add `backgroundVideo: { query: "<scene mood>", opacity: 0.15 }` for cutaways that need depth.
+
+- **Icons in workflow/graph nodes:** Use Iconify naming on solution/architecture scenes — `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, etc. Browse at icones.js.org.
+
+### Background Query Bank for Case Study scenes
+
+| Scene | Suggested query themes |
+|---|---|
+| Hook Stat (the dramatic moment) | "person at desk dark", "tense atmosphere", "stressed late night" |
+| Client Intro (person-scorecard) | "office portrait professional", "executive workspace", "boardroom interview" |
+| The Challenge (problem) | "frustrated laptop", "messy paperwork desk", "dim office overwhelmed" |
+| The Solution (timeline/workflow) | "office collaboration team", "tech installation modern", "blueprint planning" |
+| The Results (metrics) | "growth chart graph", "abstract success particles", "city skyline sunrise" |
+| Trust + CTA | "city skyline corporate", "modern office building", "professional handshake" |
 
 ## First-Pass Diagnostic — walk through before outputting
 

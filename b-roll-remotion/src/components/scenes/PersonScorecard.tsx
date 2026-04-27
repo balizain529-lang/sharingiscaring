@@ -47,7 +47,7 @@ export const PersonScorecard: React.FC<{ data: PersonScorecardScene["data"] }> =
 
   return (
     <div style={{
-      width: "100%", height: "100%", background: BG,
+      width: "100%", height: "100%",
       fontFamily: "Inter, system-ui, sans-serif",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",

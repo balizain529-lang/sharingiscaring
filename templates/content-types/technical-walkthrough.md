@@ -3,7 +3,19 @@
 **Content type:** Demos, tutorials, system walkthroughs — showing how something works
 **Typical duration:** 45–60s (short-form) / 8–10 min (long-form)
 **Best for:** Product demos, engineering deep-dives, "build with me" content, tool walkthroughs
-**Reference build:** `compositions/jon-pierpoint/` (49.6s, 1490 frames)
+**Reference build:** `compositions/jon-pierpoint/` (49.6s, 1490 frames) | `compositions/dynamic/DynamicCutaway` driven by `YtScraperIntro` config in `Root.tsx`
+
+---
+
+## Production Defaults (NEW — required on every scene)
+
+These are now baked into the system prompt. Every scene Claude generates includes them by default:
+
+1. **`backgroundVideo`** — Pexels stock at low opacity (0.18-0.25) behind the scene graphics. Solid color backgrounds were the #1 reason output looked "templated/B2B." Adding stock footage is the single biggest production-quality lift.
+2. **Iconify icons on technical nodes** — `workflow-pipeline` rows and `node-graph` nodes get `icon: "mdi:database"` (or similar) inline. Text-only nodes look like a tech demo.
+3. **Single hero stat over multi-card dashboards** — for short-form, a `big-stat-reveal` lands harder than a 3-card `kpi-dashboard`. Reserve dashboards for long-form B2B.
+
+See per-scene query banks in [prompts/technical-walkthrough.txt](../../prompts/technical-walkthrough.txt) for suggested Pexels searches.
 
 ---
 

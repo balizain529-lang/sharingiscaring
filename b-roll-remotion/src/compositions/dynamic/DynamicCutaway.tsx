@@ -109,13 +109,16 @@ const CutawayOverlay: React.FC<{ scene: Scene; index: number }> = ({ scene, inde
   if (!Component) return null;
 
   const bg = scene.backgroundVideo;
-  const bgOpacity = bg?.opacity ?? 0.15;
+  const bgOpacity = bg?.opacity ?? 0.25;
 
   return (
     <AbsoluteFill style={{ opacity }}>
-      {/* Optional stock-footage background layer (Pexels/Pixabay/etc., enriched by n8n) */}
+      {/* Layer 0: solid base color (always present so cutaway covers speaker) */}
+      <AbsoluteFill style={{ background: "#0B1222" }} />
+
+      {/* Layer 1 (optional): stock-footage background at low opacity for depth */}
       {bg?.url && (
-        <AbsoluteFill style={{ opacity: bgOpacity, zIndex: 0 }}>
+        <AbsoluteFill style={{ opacity: bgOpacity }}>
           <OffthreadVideo
             src={resolveVideoSrc(bg.url)}
             muted
@@ -123,9 +126,9 @@ const CutawayOverlay: React.FC<{ scene: Scene; index: number }> = ({ scene, inde
           />
         </AbsoluteFill>
       )}
-      <AbsoluteFill style={{ zIndex: 1 }}>
-        <Component data={scene.data} />
-      </AbsoluteFill>
+
+      {/* Layer 2: foreground scene graphics (transparent root, content visible) */}
+      <Component data={scene.data} />
     </AbsoluteFill>
   );
 };

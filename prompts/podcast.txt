@@ -60,11 +60,27 @@ Key difference: Podcasts are topic-driven, not narrative-driven. Look for:
   }
 }
 
-## Asset Enrichment Hints (n8n auto-fills these)
+## Asset Enrichment — REQUIRED on every scene
+
+Every scene MUST include `backgroundVideo.query` for production quality. Solid color backgrounds read as low-budget.
+
+- **Background video (REQUIRED):** Add `backgroundVideo: { query: "<2-4 word search>", opacity: 0.22 }` to every scene. Default `opacity: 0.22`, range 0.18-0.28.
 
 - **Icons:** Use Iconify names on workflow/graph nodes — `"mdi:database"`, `"ri:brain-line"`, `"lucide:cpu"`. Browse at icones.js.org.
+
 - **Logos:** In `LogoEndorsement`, set company `name` per logo. n8n populates `imageUrl` via Brandfetch.
-- **Background video:** `backgroundVideo: { query: "podcast studio mic", opacity: 0.15 }` adds atmospheric loop.
+
+### Background Query Bank for Podcast scenes
+
+| Scene | Suggested query themes |
+|---|---|
+| Guest Intro | "podcast studio microphone", "warm office portrait", "interview setup professional" |
+| Key Stat (hook) | "abstract glowing particles", "neon tech glow", "money cash close-up" |
+| Topic Viz — process | "abstract neural network", "data flow visualization", "tech circuit board" |
+| Topic Viz — comparison | "split screen old new", "before after transformation" |
+| Topic Viz — metrics | "graph chart growth", "data dashboard screen", "blue particles abstract" |
+| Topic Viz — companies | "city skyline modern", "corporate building", "tech office workspace" |
+| CTA | "phone close-up scroll", "social media interface", "warm tech glow" |
 
 ## First-Pass Diagnostic — walk through before outputting
 

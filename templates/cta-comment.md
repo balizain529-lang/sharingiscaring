@@ -48,6 +48,16 @@
 - **Multi-keyword** — "Comment PROCUREMENT or AUTOMATION" with both words glowing
 - **With subtitle** — adds a muted line below the keyword ("I'll send you the full 10-min breakdown")
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "phone scrolling close-up", "opacity": 0.20 }
+```
+
+**Suggested queries:** "phone scrolling close-up", "social media notification", "blue glow particles", "smartphone close-up", "neon tech glow"
+
+Use slightly lower opacity (0.18-0.20) on CTA to keep keyword + cursor crisp.
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

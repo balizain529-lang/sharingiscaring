@@ -60,6 +60,14 @@
 - **No strip** — clean ending, badges are the last element
 - **With photo** — circular headshot above the name (future)
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "studio interview professional", "opacity": 0.22 }
+```
+
+**Suggested queries:** "studio interview professional", "office portrait warm light", "executive workspace", "modern office portrait", "boardroom interview"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

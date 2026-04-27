@@ -86,7 +86,7 @@ export const WorkflowPipeline: React.FC<{ data: WorkflowPipelineScene["data"] }>
 
   return (
     <div style={{
-      width: "100%", height: "100%", background: BG,
+      width: "100%", height: "100%",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "48px 64px 40px", display: "flex", flexDirection: "column",
       justifyContent: "center", gap: 32,

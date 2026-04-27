@@ -7,6 +7,16 @@
 
 ---
 
+## Production Defaults (REQUIRED on every scene)
+
+1. **`backgroundVideo`** — Pexels stock at 0.18-0.25 opacity behind every scene. Podcast clips need atmospheric depth — solid color backgrounds read as low-budget creator content.
+2. **Iconify icons** — On `workflow-pipeline` / `node-graph` middle scenes.
+3. **Brandfetch logos** — In `logo-endorsement` middle scenes, set `name` only.
+
+Per-scene Pexels query examples in [prompts/podcast.txt](../../prompts/podcast.txt).
+
+---
+
 ## Scene Sequence
 
 ### Default Flow (4–6 scenes, 40–60s short-form)

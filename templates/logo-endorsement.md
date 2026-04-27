@@ -69,6 +69,14 @@ When actual logo files aren't available, render text-based logo placeholders:
 - **Partner grid** — "INTEGRATION PARTNERS" + API logos
 - **With ratings** — stars or score beneath each logo
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "city skyline corporate", "opacity": 0.22 }
+```
+
+**Suggested queries:** "city skyline corporate", "modern office building", "abstract gold particles", "professional handshake", "boardroom modern"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

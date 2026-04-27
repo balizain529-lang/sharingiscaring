@@ -17,7 +17,7 @@ export const KpiDashboard: React.FC<{ data: KpiDashboardScene["data"] }> = ({ da
 
   return (
     <div style={{
-      width: "100%", height: "100%", background: BG,
+      width: "100%", height: "100%",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "24px 36px 20px", display: "flex", flexDirection: "column",
       boxSizing: "border-box",

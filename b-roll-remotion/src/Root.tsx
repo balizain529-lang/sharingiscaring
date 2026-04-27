@@ -206,6 +206,12 @@ export const RemotionRoot: React.FC = () => {
                 type: "comparison-split",
                 from: 210,
                 durationInFrames: 240,
+                backgroundVideo: {
+                  query: "person at desk dark room",
+                  url: "https://videos.pexels.com/video-files/4069295/4069295-uhd_2732_1440_25fps.mp4",
+                  opacity: 0.25,
+                  source: "pexels",
+                },
                 data: {
                   left: {
                     header: "THE CREATOR TRAP",
@@ -229,6 +235,12 @@ export const RemotionRoot: React.FC = () => {
                 type: "big-stat-reveal",
                 from: 720,
                 durationInFrames: 240,
+                backgroundVideo: {
+                  query: "clock time lapse",
+                  url: "https://videos.pexels.com/video-files/7346142/7346142-uhd_1920_1440_25fps.mp4",
+                  opacity: 0.18,
+                  source: "pexels",
+                },
                 data: {
                   value: 0,
                   color: "#FF8C00",
@@ -243,36 +255,45 @@ export const RemotionRoot: React.FC = () => {
                 type: "workflow-pipeline",
                 from: 1200,
                 durationInFrames: 360,
+                backgroundVideo: {
+                  query: "abstract neural network animation",
+                  url: "https://videos.pexels.com/video-files/37104472/15718790_1920_1080_30fps.mp4",
+                  opacity: 0.20,
+                  source: "pexels",
+                },
                 data: {
                   header: "Viral Outlier Pipeline",
                   status: "ACTIVE",
                   rows: [
                     [
-                      { label: "YouTube API", sub: "Intake" },
-                      { label: "Niche Filter", sub: "Your Topic" },
-                      { label: "Apify Scraper", sub: "Extract", glow: true },
+                      { label: "YouTube API", sub: "Intake", icon: "mdi:youtube" },
+                      { label: "Niche Filter", sub: "Your Topic", icon: "mdi:filter-variant" },
+                      { label: "Apify Scraper", sub: "Extract", glow: true, icon: "mdi:web-box" },
                     ],
                     [
-                      { label: "Transcript + Thumb", sub: "Parse" },
-                      { label: "LLM Analysis", sub: "Claude", glow: true },
-                      { label: "Outlier Ranked", sub: "Scored" },
+                      { label: "Transcript + Thumb", sub: "Parse", icon: "mdi:script-text-outline" },
+                      { label: "LLM Analysis", sub: "Claude", glow: true, icon: "mdi:brain" },
+                      { label: "Outlier Ranked", sub: "Scored", icon: "mdi:trophy-variant" },
                     ],
                   ],
                 },
               },
               {
-                type: "kpi-dashboard",
+                type: "big-stat-reveal",
                 from: 1860,
                 durationInFrames: 240,
+                backgroundVideo: {
+                  query: "abstract blue particles glow",
+                  url: "https://videos.pexels.com/video-files/29168272/12596084_1920_1080_30fps.mp4",
+                  opacity: 0.22,
+                  source: "pexels",
+                },
                 data: {
-                  header: "Enterprise-Grade Foundation",
-                  status: "LIVE",
-                  cards: [
-                    { label: "Uptime", value: 99, suffix: "%", color: "#00FF88", tickRange: [-4, 0] },
-                    { label: "Workflows Shipped", value: 12, suffix: "+", color: "#00D4FF" },
-                    { label: "Records Processed", value: 50, suffix: "K+", color: "#00D4FF" },
-                  ],
-                  sparkline: true,
+                  value: 99,
+                  suffix: "%",
+                  format: "percentage",
+                  color: "#00FF88",
+                  subtitle: "Enterprise-grade uptime. 12+ workflows shipped. 50K+ records processed.",
                 },
               },
             ],

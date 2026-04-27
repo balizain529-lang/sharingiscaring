@@ -56,12 +56,31 @@ Transcript mapping triggers:
   }
 }
 
-## Asset Enrichment Hints (n8n auto-fills these)
+## Asset Enrichment — REQUIRED on every scene
 
-When you reference assets, use these conventions — n8n will populate URLs/IDs:
-- **Icons in workflow/graph nodes:** Set `icon: "<iconify-name>"` on `WorkflowPipelineScene` row items and `NodeGraphScene` nodes. Examples: `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, `"lucide:cpu"`, `"lucide:cloud"`. Browse at icones.js.org.
+Every scene MUST include `backgroundVideo.query` for production quality. Solid color backgrounds read as low-budget. Pexels stock at low opacity adds depth and cinematic feel.
+
+- **Background video (REQUIRED):** Add `backgroundVideo: { query: "<2-4 word search>", opacity: 0.22 }` to every scene. Pick query themes that match the scene's emotional tone, not literal content. Use `opacity: 0.18-0.28` (default 0.22). n8n fetches via Pexels → Pixabay fallback.
+
+- **Icons in workflow/graph nodes:** Set `icon: "<iconify-name>"` on `WorkflowPipelineScene` row items and `NodeGraphScene` nodes. Examples: `"mdi:database"`, `"mdi:robot"`, `"ri:brain-line"`, `"lucide:cpu"`, `"lucide:cloud"`. Browse at icones.js.org. Always set icons on technical nodes — text-only nodes look like a tech demo.
+
 - **Logos:** In `LogoEndorsementScene`, set `name` per logo. n8n will look up `imageUrl` via Brandfetch.
-- **Background video:** Add `backgroundVideo: { query: "data center server room", opacity: 0.15 }` to any scene for low-opacity stock video behind graphics. n8n fetches from Pexels (then falls through Pixabay/Mixkit/Coverr).
+
+### Background Video Query Bank (use these themes by scene type)
+
+| Scene type | Good queries |
+|---|---|
+| big-stat-reveal (problem/red) | "person at desk dark room", "stressed laptop late night", "frustrated working" |
+| big-stat-reveal (win/green) | "abstract blue particles", "tech glow particles", "futuristic data flow" |
+| person-scorecard | "studio interview professional", "office desk workspace", "warm office light" |
+| kpi-dashboard | "abstract data visualization", "blue particle animation", "tech network nodes" |
+| workflow-pipeline | "abstract neural network", "circuit board glow", "data flow animation" |
+| node-graph | "abstract network connections", "geometric mesh nodes", "tech grid blueprint" |
+| timeline-steps | "city time-lapse", "construction progress", "growth animation abstract" |
+| comparison-split | "split screen contrast", "before after transformation", "dual world" |
+| logo-endorsement | "city skyline corporate", "modern office building", "abstract gold particles" |
+| cta-comment | "phone scrolling close-up", "social media notification", "blue glow particles" |
+| data-table | "data center servers", "monitors dashboard tech", "spreadsheet scrolling" |
 
 ## First-Pass Diagnostic — walk through before outputting
 

@@ -55,6 +55,14 @@
 - **3-column** — "Before / During / After" or "Competitor A / Us / Competitor B"
 - **Animated transition** — left side shown first, then "swipes" to reveal right side
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "split screen contrast dark", "opacity": 0.22 }
+```
+
+**Suggested queries:** "split screen contrast", "before after transformation", "person frustrated vs calm", "old vs new", "messy vs organized"
+
 ## Polish Checklist
 
 Common first-pass issues + fixes (from LEARNINGS.md):

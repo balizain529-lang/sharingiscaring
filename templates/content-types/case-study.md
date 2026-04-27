@@ -7,6 +7,16 @@
 
 ---
 
+## Production Defaults (REQUIRED on every scene)
+
+1. **`backgroundVideo`** — Pexels stock at 0.18-0.25 opacity behind every scene. Solid backgrounds make case studies feel like generic SaaS testimonials. Real footage adds the "premium client showcase" feel.
+2. **Brandfetch logos** — In `LogoEndorsement` scenes, set company `name` only — n8n auto-fills `imageUrl` from Brandfetch. Real client logos > text fallbacks for trust signals.
+3. **Iconify icons** — On any technical scenes (`workflow-pipeline`, `node-graph`).
+
+Per-scene Pexels query examples in [prompts/case-study.txt](../../prompts/case-study.txt).
+
+---
+
 ## Scene Sequence
 
 ### Default Flow (6 scenes, 50–70s short-form)

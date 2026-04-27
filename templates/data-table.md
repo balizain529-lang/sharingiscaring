@@ -86,6 +86,16 @@
 - **Color-coded rows** — entire row bg tinted by risk/status level
 - **With sparklines** — mini inline charts in the last column per row
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "data center servers", "opacity": 0.18 }
+```
+
+**Suggested queries:** "data center servers", "monitors dashboard tech", "spreadsheet scrolling", "abstract data visualization", "tech office workspace"
+
+Use lower opacity (0.15-0.20) for data-table since the table itself has a lot of detail to read.
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

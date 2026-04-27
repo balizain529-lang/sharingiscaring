@@ -27,7 +27,7 @@ export const ComparisonSplit: React.FC<{ data: ComparisonSplitScene["data"] }> =
 
   return (
     <div style={{
-      width: "100%", height: "100%", background: BG,
+      width: "100%", height: "100%",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "72px 80px", display: "flex", gap: 48,
       alignItems: "center",

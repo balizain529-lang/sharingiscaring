@@ -63,6 +63,14 @@
 - **Milestone markers** — diamonds instead of circles for key milestones
 - **Animated progress** — steps light up in sequence like a loading sequence
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "city time-lapse construction", "opacity": 0.22 }
+```
+
+**Suggested queries:** "city time-lapse", "construction progress", "growth animation abstract", "building under construction", "blueprint planning"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

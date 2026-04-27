@@ -113,6 +113,45 @@ Rule of thumb: when adding a new scene to a horizontal composition, preview in S
 
 Newest first. Each session entry: what was built, what went wrong, what was learned, and commit refs. Keep entries tight — this is a reference, not a journal.
 
+### 2026-04-26 — Pexels Backgrounds + Production Defaults
+
+**What was built:**
+- Production defaults baked into all 10 scene templates + 3 content blueprints + 3 system prompts: every scene now includes `backgroundVideo.query` by default
+- Per-scene-type Pexels query banks added to prompt files
+- DynamicCutaway updated: provides solid `#0B1222` base + optional Pexels video at low opacity, scene component renders on top with transparent root
+- All 10 scene components had `background: BG` removed from root container (so backgrounds can show through)
+
+**What went wrong / learned (CRITICAL):**
+
+The first attempt (`yt-scraper-intro-v3.mp4`) added `backgroundVideo` URLs in the config, DynamicCutaway rendered the OffthreadVideo at z-index 0, but **the user couldn't see any backgrounds.** File size was identical to v2 (75 MB) — same as the no-background version.
+
+**Root cause:** every scene component (`WorkflowPipeline.tsx`, `BigStatReveal.tsx`, etc.) had `background: BG` (#0B1222) on its root `<div>`. That solid fill covered the OffthreadVideo layer underneath, so the video rendered but was completely hidden.
+
+**Fix:** moved the `#0B1222` base layer from each scene component into `DynamicCutaway`'s `CutawayOverlay`. Scene components now have transparent roots; DynamicCutaway provides:
+- Layer 0: solid `#0B1222` (always present, so cutaway covers speaker)
+- Layer 1: Pexels video at `bgOpacity` (default 0.22)
+- Layer 2: scene foreground graphics
+
+Result: v4 jumped to 107 MB (vs 75 MB) — confirmation that real footage is now in the output.
+
+**Rule for future scene components:**
+- Scene components MUST have transparent root containers
+- The composition (DynamicCutaway / DynamicShort) provides the background layer
+- This lets `backgroundVideo` work for any scene type without per-component refactoring
+
+**New defaults in the templates:**
+- Every scene template MD now has a "Background Video (REQUIRED)" section with suggested Pexels queries
+- Prompts instruct Claude to ALWAYS include `backgroundVideo.query` (not optional)
+- Per-scene-type query banks documented in `prompts/*.txt`
+
+**Production-quality stack (current):**
+- Pexels stock at low opacity behind every scene (free)
+- Iconify icons on technical nodes (free)
+- Brandfetch logos in LogoEndorsement (free 500K/mo)
+- Single hero stat (`big-stat-reveal`) replaces multi-card `kpi-dashboard` for short-form (less corporate feel)
+
+---
+
 ### 2026-04-23 — YT Scraper Intro
 
 **Video:** [New Vid 2/YT Scraper Intro.mp4](New%20Vid%202/YT%20Scraper%20Intro.mp4) (89s horizontal, speaker: Milan)

@@ -61,6 +61,21 @@
 - **Countdown** — number counts DOWN (good for "reduced from X to Y")
 - **With context line** — "That's more than the GDP of..." beneath subtitle
 
+## Background Video (REQUIRED)
+
+Every scene now includes a Pexels stock video at low opacity for cinematic depth. Solid color backgrounds = low-budget.
+
+```json
+"backgroundVideo": { "query": "person at desk dark room", "opacity": 0.22 }
+```
+
+**Suggested queries for this scene type:**
+- Problem/red stat: "stressed laptop late night", "person at desk dark", "frustrated working"
+- Win/green stat: "abstract blue particles", "tech glow particles", "futuristic data flow"
+- Money/cost: "cash money close-up", "invoice paperwork", "credit card close-up"
+
+n8n auto-populates `url` via Pexels API. For local testing, paste a Pexels URL directly into `url`.
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |

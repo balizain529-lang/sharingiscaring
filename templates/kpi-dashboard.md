@@ -63,6 +63,14 @@ Pulsing green dot (sin wave opacity 0.6-1.0) next to "LIVE" label.
 - **No flow row** — cards + sparkline + title
 - **Bar chart** instead of sparkline (vertical bars with staggered height animation)
 
+## Background Video (REQUIRED)
+
+```json
+"backgroundVideo": { "query": "abstract data visualization", "opacity": 0.22 }
+```
+
+**Suggested queries:** "abstract data visualization", "blue particle animation", "tech network nodes", "futuristic dashboard glow", "data center servers"
+
 ## Polish Checklist
 
 | Issue | Cause | Fix |
