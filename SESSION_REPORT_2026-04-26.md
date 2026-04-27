@@ -177,3 +177,22 @@ vs $50-150 freelance editor. Same as last session, no cost change.
 - Latest commit: `6322ff0` — "Pexels backgrounds + production defaults across all templates"
 - Repo: https://github.com/balizain529-lang/sharingiscaring
 - 30 files changed in this session, 609 insertions, 41 deletions
+
+---
+
+## Tech Stack — What We Have vs Don't Have
+
+User-referenced stack for content automation. State as of April 26, 2026:
+
+| Tool | Purpose | Status | Notes |
+|---|---|---|---|
+| **Claude Code** | Orchestrator | ✓ HAVE | Active coordination layer for all B-roll work |
+| **ElevenLabs** | Word-level timestamps | ✗ DON'T HAVE | Currently using **Groq Whisper** (and previously OpenAI Whisper) for segment-level timestamps. ElevenLabs STT would give finer word-level accuracy if needed |
+| **FFmpeg** | Trim fillers, retakes, dead space | ⚠ PARTIAL | Installed and used for `.mov` → `.mp4` transcoding + (planned) music mixing. **NOT yet wired up** for auto-trimming filler words / retakes — that's still manual in Descript |
+| **HyperFrames** | Motion graphics | ✗ DON'T HAVE | Currently using **Remotion** (custom React-based). HyperFrames is an alternative motion graphics tool worth evaluating as a complement or replacement |
+
+### Gaps to close (if moving to the full aspirational stack)
+
+1. **Swap Whisper → ElevenLabs** for transcription if word-level precision matters (e.g., for sub-frame caption timing or precise filler-word detection). Trade-off: ElevenLabs STT is more expensive than Groq Whisper.
+2. **Build FFmpeg auto-trim node** in n8n: takes Whisper/ElevenLabs word timestamps + filler word list (`um`, `uh`, `like`, repeated takes) → outputs cut list → FFmpeg concat. Would eliminate the manual Descript step.
+3. **Evaluate HyperFrames** vs Remotion: would they replace our scene library or augment it? Remotion is React-native and matches our team's stack; HyperFrames may have premium pre-built motion design that beats our custom components for viral content.
