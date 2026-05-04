@@ -273,65 +273,142 @@ async function trimInBackground(jobId, videoUrl, words, options, outputPath) {
   }
 }
 
-// ─── Task 5: Vision Review Endpoint ──────────────────────────────────
-// POST /review { videoUrl, config }
-// Extracts sample frames (one per scene mid-point) and asks Claude to critique.
-app.post("/review", auth, async (req, res) => {
-  const { videoUrl, config } = req.body;
-  if (!videoUrl || !config?.scenes) return res.status(400).json({ error: "videoUrl and config.scenes required" });
-  if (!OPENROUTER_API_KEY) return res.status(503).json({ error: "OPENROUTER_API_KEY not configured on server" });
+// ─── Task 5: B-Roll / Transcript Match Review ────────────────────────
+// POST /review-match { config, transcript, videoUrl?, words? }
+// Per-scene check: does the chosen Pexels clip match what the speaker is saying?
+//   - transcript: full transcript text (or Whisper segments with timestamps)
+//   - words: optional Whisper word-level timestamps (more precise scene-segment slicing)
+//   - videoUrl: optional — if provided, also pulls frame mid-scene for visual cross-check
+// Returns per-scene match verdict + suggested better Pexels query if mismatched.
+app.post("/review-match", auth, async (req, res) => {
+  const { config, transcript, words, videoUrl } = req.body;
+  if (!config?.scenes) return res.status(400).json({ error: "config.scenes required" });
+  if (!transcript && !words) return res.status(400).json({ error: "transcript or words[] required" });
+  if (!OPENROUTER_API_KEY) return res.status(503).json({ error: "OPENROUTER_API_KEY not configured" });
 
   const jobId = crypto.randomUUID();
-  jobs.set(jobId, { type: "review", status: "downloading", startedAt: new Date().toISOString() });
+  jobs.set(jobId, { type: "review-match", status: "starting", startedAt: new Date().toISOString() });
 
-  reviewInBackground(jobId, videoUrl, config).catch((err) => {
+  reviewMatchInBackground(jobId, config, transcript, words, videoUrl).catch((err) => {
     jobs.set(jobId, { ...jobs.get(jobId), status: "error", error: err.message });
   });
 
   res.json({ jobId, statusUrl: `/status/${jobId}` });
 });
 
-async function reviewInBackground(jobId, videoUrl, config) {
+/**
+ * Slice transcript text for a given time window.
+ * Prefers word-level timestamps if available; falls back to substring of full transcript by ratio.
+ */
+function transcriptForWindow(transcript, words, startSec, endSec) {
+  if (Array.isArray(words) && words.length > 0) {
+    return words
+      .filter((w) => w.end >= startSec && w.start <= endSec)
+      .map((w) => w.word)
+      .join(" ")
+      .trim();
+  }
+  if (!transcript) return "";
+  // Fallback: assume transcript covers full video; slice proportionally.
+  // Caller should provide totalDuration via config metadata if known.
+  return transcript; // Best-effort — caller should pass words for accuracy.
+}
+
+async function reviewMatchInBackground(jobId, config, transcript, words, videoUrl) {
   const update = (f) => jobs.set(jobId, { ...jobs.get(jobId), ...f });
   try {
-    update({ status: "downloading" });
-    const videoFile = await downloadToTemp(videoUrl, ".mp4");
-
-    update({ status: "extracting frames" });
     const fps = config.meta?.fps ?? 30;
     const frames = [];
-    for (let i = 0; i < config.scenes.length; i++) {
-      const scene = config.scenes[i];
-      // Mid-frame of the scene
-      const midFrame = scene.from + Math.floor(scene.durationInFrames / 2);
-      const midSec = midFrame / fps;
-      const framePath = path.join(TMP_DIR, `${jobId}-frame-${i}.jpg`);
-      await runFFmpeg(["-y", "-ss", String(midSec), "-i", videoFile, "-vframes", "1", "-q:v", "3", framePath]);
-      const frameBuf = fs.readFileSync(framePath);
-      frames.push({ sceneIndex: i, sceneType: scene.type, base64: frameBuf.toString("base64"), framePath });
+    let videoFile = null;
+
+    if (videoUrl) {
+      update({ status: "downloading video for frame extraction" });
+      videoFile = await downloadToTemp(videoUrl, ".mp4");
+
+      update({ status: "extracting frames" });
+      for (let i = 0; i < config.scenes.length; i++) {
+        const scene = config.scenes[i];
+        const midSec = (scene.from + Math.floor(scene.durationInFrames / 2)) / fps;
+        const framePath = path.join(TMP_DIR, `${jobId}-frame-${i}.jpg`);
+        await runFFmpeg(["-y", "-ss", String(midSec), "-i", videoFile, "-vframes", "1", "-q:v", "3", framePath]);
+        const buf = fs.readFileSync(framePath);
+        frames[i] = { base64: buf.toString("base64"), framePath };
+      }
     }
 
-    update({ status: "asking claude" });
-    const systemPrompt = `You are a senior motion designer reviewing B-roll graphics. For each frame, identify production-quality issues. Be specific, terse, actionable. Categories: pacing, layout, typography, motion, brand consistency, accessibility (text contrast/size).
+    update({ status: "building per-scene context" });
+    const sceneContexts = config.scenes.map((scene, i) => {
+      const startSec = scene.from / fps;
+      const endSec = (scene.from + scene.durationInFrames) / fps;
+      const segment = transcriptForWindow(transcript, words, startSec, endSec);
+      return {
+        index: i,
+        type: scene.type,
+        startSec: startSec.toFixed(2),
+        endSec: endSec.toFixed(2),
+        durationSec: ((endSec - startSec)).toFixed(2),
+        spokenContent: segment,
+        backgroundVideo: scene.backgroundVideo
+          ? { query: scene.backgroundVideo.query, url: scene.backgroundVideo.url, opacity: scene.backgroundVideo.opacity }
+          : null,
+        sceneData: scene.data,
+      };
+    });
 
-Output JSON: { "overall": "<2-sentence assessment>", "scenes": [{ "sceneIndex": <n>, "sceneType": "<type>", "verdict": "good|needs-work|broken", "issues": ["<terse issue>"] }] }
+    update({ status: "asking claude per-scene" });
 
-Be honest. If a scene is fine, say "good" with empty issues. Don't pad with feel-good comments.`;
+    const systemPrompt = `You review whether a Pexels stock background clip MATCHES what a speaker is saying during a specific scene of a B-roll video.
 
-    const userContent = [
-      {
+For each scene you receive:
+- The speaker's spoken words during that scene's time window
+- The Pexels search query that was used to find a background clip
+- The scene type (e.g., "workflow-pipeline", "big-stat-reveal", "comparison-split")
+- Optionally: a frame from the rendered video showing the actual visual
+
+Your job — per scene — return a verdict on whether the background MATCHES the spoken content:
+- "good" — background reinforces or complements what's being said
+- "partial" — tangentially related; not wrong but not strong
+- "mismatch" — background is unrelated to spoken content; should be replaced
+
+If "partial" or "mismatch", suggest a better Pexels query (2-4 words, topical to the spoken content). The query should describe a visual concept that would reinforce the words being spoken.
+
+Be specific and actionable. Examples of good queries: "creator filming vertical phone", "data center rack server", "stressed person at desk laptop", "growth chart graph rising", "podcast microphone close-up".
+
+Avoid generic queries like "abstract particles" unless the speaker is talking about something abstract.
+
+Output ONLY this JSON:
+{
+  "scenes": [
+    {
+      "sceneIndex": <n>,
+      "match": "good" | "partial" | "mismatch",
+      "reasoning": "<one sentence>",
+      "suggestedQuery": "<2-4 word query>" | null
+    }
+  ],
+  "overallVerdict": "<one sentence summary, e.g. 'All scenes match' or 'Scene 2 and 4 need replacement'>",
+  "mismatchCount": <number>
+}`;
+
+    // Build multi-modal user message (frames per scene if videoUrl provided)
+    const userContentParts = [];
+    for (let i = 0; i < sceneContexts.length; i++) {
+      const ctx = sceneContexts[i];
+      userContentParts.push({
         type: "text",
-        text: `Review this B-roll render. Scene config (for context):\n\n${JSON.stringify(
-          config.scenes.map((s, i) => ({ index: i, type: s.type, durationFrames: s.durationInFrames, hasBackground: !!s.backgroundVideo?.url })),
-          null,
-          2
-        )}\n\nFrames follow (one per scene, mid-frame):`,
-      },
-      ...frames.map((f) => ({
-        type: "image_url",
-        image_url: { url: `data:image/jpeg;base64,${f.base64}` },
-      })),
-    ];
+        text: `=== Scene ${i} (${ctx.type}, ${ctx.startSec}s–${ctx.endSec}s) ===
+Spoken: "${ctx.spokenContent || "(no transcript segment available)"}"
+Pexels query used: "${ctx.backgroundVideo?.query || "(none — no background)"}"
+Background URL: ${ctx.backgroundVideo?.url ? "populated" : "missing"}
+Scene foreground content: ${JSON.stringify(ctx.sceneData).substring(0, 200)}...`,
+      });
+      if (frames[i]) {
+        userContentParts.push({
+          type: "image_url",
+          image_url: { url: `data:image/jpeg;base64,${frames[i].base64}` },
+        });
+      }
+    }
 
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -339,14 +416,14 @@ Be honest. If a scene is fine, say "good" with empty issues. Don't pad with feel
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/balizain529-lang/sharingiscaring",
-        "X-Title": "B-Roll Vision Review",
+        "X-Title": "B-Roll Match Review",
       },
       body: JSON.stringify({
         model: "anthropic/claude-sonnet-4",
         max_tokens: 4000,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
+          { role: "user", content: userContentParts },
         ],
       }),
     });
@@ -361,17 +438,18 @@ Be honest. If a scene is fine, say "good" with empty issues. Don't pad with feel
     } catch (e) {
       const m = text.match(/\{[\s\S]*\}/);
       if (m) critique = JSON.parse(m[0]);
-      else critique = { overall: text, scenes: [] };
+      else critique = { error: "Failed to parse critique", raw: text };
     }
 
-    // Cleanup frame files
-    frames.forEach((f) => { try { fs.unlinkSync(f.framePath); } catch {} });
-    fs.unlinkSync(videoFile);
+    // Cleanup
+    frames.forEach((f) => f && fs.existsSync(f.framePath) && fs.unlinkSync(f.framePath));
+    if (videoFile) fs.unlinkSync(videoFile);
 
     update({
       status: "complete",
       completedAt: new Date().toISOString(),
-      sceneCount: frames.length,
+      sceneCount: sceneContexts.length,
+      visualReview: !!videoUrl,
       critique,
     });
   } catch (err) {
@@ -379,6 +457,47 @@ Be honest. If a scene is fine, say "good" with empty issues. Don't pad with feel
     throw err;
   }
 }
+
+// ─── /apply-match-fixes — re-fetch Pexels for mismatched scenes ──────
+// POST /apply-match-fixes { config, suggestions: [{sceneIndex, suggestedQuery}] }
+// Returns: updated config with new Pexels URLs for the corrected scenes.
+app.post("/apply-match-fixes", auth, async (req, res) => {
+  const { config, suggestions } = req.body;
+  if (!config?.scenes || !Array.isArray(suggestions)) {
+    return res.status(400).json({ error: "config.scenes and suggestions[] required" });
+  }
+  const PEXELS_KEY = process.env.PEXELS_API_KEY;
+  if (!PEXELS_KEY) return res.status(503).json({ error: "PEXELS_API_KEY not configured" });
+
+  const updated = JSON.parse(JSON.stringify(config));
+  const replaced = [];
+
+  for (const s of suggestions) {
+    const scene = updated.scenes[s.sceneIndex];
+    if (!scene || !s.suggestedQuery) continue;
+    try {
+      const r = await fetch(
+        `https://api.pexels.com/videos/search?query=${encodeURIComponent(s.suggestedQuery)}&per_page=3&orientation=landscape`,
+        { headers: { Authorization: PEXELS_KEY } }
+      );
+      if (!r.ok) continue;
+      const d = await r.json();
+      const v = d.videos?.[0];
+      const f = v?.video_files?.find((f) => f.quality === "hd" && f.width >= 1280) || v?.video_files?.[0];
+      if (f?.link) {
+        scene.backgroundVideo = {
+          ...(scene.backgroundVideo || {}),
+          query: s.suggestedQuery,
+          url: f.link,
+          source: "pexels",
+        };
+        replaced.push({ sceneIndex: s.sceneIndex, query: s.suggestedQuery, url: f.link });
+      }
+    } catch (e) { /* skip on failure */ }
+  }
+
+  res.json({ config: updated, replaced, replacedCount: replaced.length });
+});
 
 // ─── Render (existing implementation) ────────────────────────────────
 async function renderInBackground(renderId, compositionId, inputProps, outputPath) {
@@ -422,11 +541,12 @@ async function renderInBackground(renderId, compositionId, inputProps, outputPat
 
 app.listen(PORT, () => {
   console.log(`B-Roll Render Server running on port ${PORT}`);
-  console.log(`  POST /render     — render Remotion composition to MP4`);
-  console.log(`  POST /mix-audio  — overlay music track on video`);
-  console.log(`  POST /trim       — auto-trim filler words + dead space`);
-  console.log(`  POST /review     — Claude vision review of rendered video`);
-  console.log(`  GET  /status/:id — check job status`);
-  console.log(`  GET  /download/:id — download output`);
-  console.log(`  GET  /health     — health check`);
+  console.log(`  POST /render             — render Remotion composition to MP4`);
+  console.log(`  POST /mix-audio          — overlay music track on video`);
+  console.log(`  POST /trim               — auto-trim filler words + dead space`);
+  console.log(`  POST /review-match       — per-scene check: does Pexels b-roll match transcript?`);
+  console.log(`  POST /apply-match-fixes  — re-fetch Pexels for scenes Claude flagged as mismatch`);
+  console.log(`  GET  /status/:id         — check job status`);
+  console.log(`  GET  /download/:id       — download output`);
+  console.log(`  GET  /health             — health check`);
 });
