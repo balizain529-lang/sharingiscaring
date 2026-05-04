@@ -75,6 +75,12 @@ interface SceneBase {
     /** Source attribution. Defaults to "pexels" → fallback chain. */
     source?: "pexels" | "pixabay" | "mixkit" | "coverr";
   };
+  /** For DynamicOverlay composition: zone where the overlay renders without covering the speaker.
+   *  - "lower-third": bottom 28% of frame, full width (default for person-scorecard, cta-comment, logo-endorsement)
+   *  - "hero-stat-corner": top-right corner, ~30% of frame (default for big-stat-reveal, kpi-dashboard)
+   *  - "caption-center": full-width animated text caption near top, semi-transparent bg (default for comparison-split)
+   *  Ignored by DynamicCutaway (which fills full screen with the scene). */
+  layout?: "lower-third" | "hero-stat-corner" | "caption-center";
   /** Optional polish notes from Claude flagging potential first-pass issues. */
   _polishNotes?: string;
 }
