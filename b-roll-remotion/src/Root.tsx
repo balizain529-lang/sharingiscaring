@@ -401,19 +401,33 @@ export const RemotionRoot: React.FC = () => {
                 type: "workflow-pipeline",
                 from: 1200,
                 durationInFrames: 360,
-                layout: "lower-third",
+                layout: "fullscreen-cutaway",
+                backgroundVideo: {
+                  query: "youtube analytics dashboard screen",
+                  url: "https://videos.pexels.com/video-files/37104472/15718790_1920_1080_30fps.mp4",
+                  opacity: 0.22,
+                  source: "pexels",
+                },
                 data: {
                   header: "Viral Outlier Pipeline",
                   status: "ACTIVE",
                   rows: [
                     [
                       { label: "YouTube API", sub: "Intake", icon: "mdi:youtube" },
-                      { label: "Niche Filter", sub: "Topic", icon: "mdi:filter-variant" },
+                      { label: "Niche Filter", sub: "Your Topic", icon: "mdi:filter-variant" },
                       { label: "Apify Scraper", sub: "Extract", glow: true, icon: "mdi:web-box" },
+                    ],
+                    [
+                      { label: "Transcript + Thumb", sub: "Parse", icon: "mdi:script-text-outline" },
                       { label: "LLM Analysis", sub: "Claude", glow: true, icon: "mdi:brain" },
                       { label: "Outlier Ranked", sub: "Scored", icon: "mdi:trophy-variant" },
                     ],
                   ],
+                  stats: [
+                    { label: "videos analyzed", value: "5K+" },
+                    { label: "avg scan time", value: "<2 min" },
+                  ],
+                  title: { text: "FIND OUTLIERS BEFORE THE WAVE PASSES", accentWord: "OUTLIERS" },
                 },
               },
               {
@@ -422,11 +436,11 @@ export const RemotionRoot: React.FC = () => {
                 durationInFrames: 240,
                 layout: "hero-stat-corner",
                 data: {
-                  value: 99,
-                  suffix: "%",
-                  format: "percentage",
+                  value: 5000,
+                  format: "abbreviated",
+                  suffix: "K+",
                   color: "#00FF88",
-                  subtitle: "Enterprise-grade uptime. 12+ workflows shipped.",
+                  subtitle: "Videos analyzed per niche. Outliers ranked by viral potential.",
                 },
               },
             ],

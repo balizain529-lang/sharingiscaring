@@ -11,17 +11,20 @@ import type { BRollConfig, Scene, SceneType } from "../../data/schema";
 import { LowerThirdOverlay } from "../../components/overlays/LowerThirdOverlay";
 import { HeroStatOverlay } from "../../components/overlays/HeroStatOverlay";
 import { CaptionOverlay } from "../../components/overlays/CaptionOverlay";
+import { SCENE_REGISTRY } from "../../components/scenes";
 
 const resolveVideoSrc = (url: string): string =>
   /^https?:\/\//i.test(url) ? url : staticFile(url);
 
 const FADE_FRAMES = 8;
 
+type Layout = "lower-third" | "hero-stat-corner" | "caption-center" | "fullscreen-cutaway";
+
 /**
  * Default overlay layout per scene type when scene.layout isn't explicitly set.
  * Speaker is always visible — overlays NEVER cover the face.
  */
-const DEFAULT_LAYOUT: Record<SceneType, "lower-third" | "hero-stat-corner" | "caption-center"> = {
+const DEFAULT_LAYOUT: Record<SceneType, Layout> = {
   "person-scorecard": "lower-third",
   "logo-endorsement": "lower-third",
   "cta-comment": "lower-third",
@@ -48,7 +51,31 @@ const OverlaySwitch: React.FC<{ scene: Scene }> = ({ scene }) => {
   );
   const opacity = Math.min(fadeIn, fadeOut);
 
-  const layout = scene.layout ?? DEFAULT_LAYOUT[scene.type] ?? "lower-third";
+  const layout: Layout = scene.layout ?? DEFAULT_LAYOUT[scene.type] ?? "lower-third";
+
+  // Fullscreen cutaway: covers the speaker for this scene.
+  // Renders solid base + optional Pexels background + full scene component.
+  if (layout === "fullscreen-cutaway") {
+    const bg = scene.backgroundVideo;
+    const bgOpacity = bg?.opacity ?? 0.25;
+    const Component = SCENE_REGISTRY[scene.type];
+    if (!Component) return null;
+    return (
+      <AbsoluteFill style={{ opacity }}>
+        <AbsoluteFill style={{ background: "#0B1222" }} />
+        {bg?.url && (
+          <AbsoluteFill style={{ opacity: bgOpacity }}>
+            <OffthreadVideo
+              src={resolveVideoSrc(bg.url)}
+              muted
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </AbsoluteFill>
+        )}
+        <Component data={scene.data} />
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{ opacity }}>

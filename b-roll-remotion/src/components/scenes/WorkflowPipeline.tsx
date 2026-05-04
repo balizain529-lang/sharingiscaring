@@ -145,8 +145,29 @@ export const WorkflowPipeline: React.FC<{ data: WorkflowPipelineScene["data"] }>
         <div style={{ textAlign: "center", marginTop: "auto", paddingTop: 12 }}>
           {data.title.accentWord ? (
             <div style={{ fontSize: 34, fontWeight: 900 }}>
-              <span style={{ color: GREEN, textShadow: `0 0 20px ${GREEN}55` }}>{data.title.accentWord}</span>
-              <span style={{ color: "#fff" }}> {data.title.text.replace(data.title.accentWord, "").trim()}</span>
+              {(() => {
+                const accent = data.title.accentWord;
+                const re = new RegExp(`\\b${accent}\\b`, "i");
+                const idx = data.title.text.search(re);
+                if (idx === -1) {
+                  return (
+                    <>
+                      <span style={{ color: GREEN, textShadow: `0 0 20px ${GREEN}55` }}>{accent}</span>
+                      <span style={{ color: "#fff" }}> {data.title.text}</span>
+                    </>
+                  );
+                }
+                const before = data.title.text.slice(0, idx);
+                const matched = data.title.text.slice(idx, idx + accent.length);
+                const after = data.title.text.slice(idx + accent.length);
+                return (
+                  <>
+                    <span style={{ color: "#fff" }}>{before}</span>
+                    <span style={{ color: GREEN, textShadow: `0 0 20px ${GREEN}55` }}>{matched}</span>
+                    <span style={{ color: "#fff" }}>{after}</span>
+                  </>
+                );
+              })()}
             </div>
           ) : (
             <div style={{ fontSize: 34, fontWeight: 900, color: "#fff" }}>{data.title.text}</div>

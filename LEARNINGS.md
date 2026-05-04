@@ -113,6 +113,34 @@ Rule of thumb: when adding a new scene to a horizontal composition, preview in S
 
 Newest first. Each session entry: what was built, what went wrong, what was learned, and commit refs. Keep entries tight — this is a reference, not a journal.
 
+### 2026-05-04 — DynamicOverlay + Match-Review + Render Server Endpoints
+
+**What was built:**
+- `DynamicOverlay` composition + 3 overlay components (`LowerThirdOverlay`, `HeroStatOverlay`, `CaptionOverlay`) — speaker stays full-screen, graphics overlay in zones
+- Schema: `scene.layout?: "lower-third" | "hero-stat-corner" | "caption-center"` (DynamicOverlay reads this; DynamicCutaway ignores)
+- Render server endpoints added: `/mix-audio`, `/trim` (FFmpeg auto-cut filler+silence), `/review-match` (per-scene Pexels-vs-transcript check), `/apply-match-fixes` (re-fetch with suggested queries)
+- n8n drive-watcher v6 — adds match-review + apply-fixes step before render
+- `JonPierpointVerticalV2` composition — Walt Charles content as DynamicCutaway with Pexels backgrounds + Iconify icons (verifies vertical 1080×1920 works at parity with horizontal)
+
+**What went wrong / learned:**
+
+1. **DynamicCutaway covers the speaker** ~40% of runtime. User feedback was unambiguous: "I just wanted to enhance graphics while keeping avatars on screen." `DynamicOverlay` is the right pattern for that — speaker visible 100%, graphics overlay in 3 zones. Fix delivered same session.
+
+2. **Caption-center overlay positioning matters at horizontal aspect.** First pass had `top: 20%`, which sat over the speaker's forehead/eyes. Fix: `top: 4%` — caption sits in the top band, fully above the head. New rule: caption overlays at 1920×1080 should use `top: 4-6%` and `maxWidth: 70%`.
+
+3. **File size jumps when speaker stays visible.** Cutaway v4 was 107 MB; overlay v1 was 111 MB; overlay v2 (with caption fix) 113 MB. H.264 encodes more bits when a real speaker face is in every frame (high entropy) than when the speaker is covered by simpler graphics (~40% of runtime in cutaway). This is the codec working as expected, not a bug.
+
+4. **Pexels query topicality matters more than I thought.** Generic queries like "abstract particles" pulled visuals that didn't reinforce the spoken content. Tightened the system prompt (April 26) and added the `/review-match` endpoint (May 4) so Claude critiques per-scene Pexels match against transcript and suggests better queries.
+
+**New rules for future scene components:**
+- Scene component root MUST be transparent (still applies — fix from April 26 stands)
+- Caption-style overlays (text reveals) should sit at `top: 4-6%` for horizontal aspect, never overlap with speaker face zone (15-65% Y range)
+- For viral content: prefer `DynamicOverlay`. For B2B explainers: `DynamicCutaway`. Don't mix in the same composition.
+
+**Commit refs:** `2e9e46f` (DynamicOverlay first build), `ce1911d` (caption position fix). Render outputs: `out/yt-scraper-overlay.mp4` and `out/yt-scraper-overlay-v2.mp4`.
+
+---
+
 ### 2026-04-26 — Pexels Backgrounds + Production Defaults
 
 **What was built:**
