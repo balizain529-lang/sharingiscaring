@@ -1,8 +1,9 @@
 FROM node:20-slim
 
-# Install Chrome dependencies for Remotion
+# Install Chrome (Remotion render), FFmpeg (mix-audio + auto-trim), Inter fonts
 RUN apt-get update && apt-get install -y \
     chromium \
+    ffmpeg \
     fonts-inter \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*

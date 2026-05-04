@@ -1,8 +1,8 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { WorkflowPipelineScene } from "../../data/schema";
+import { MOTION } from "../../data/motion-presets";
 
-const BG = "#0B1222";
 const TEAL = "#00D4FF";
 const GREEN = "#00FF88";
 const CARD_BG = "#111E30";
@@ -27,11 +27,11 @@ const WorkflowNode: React.FC<{
 }> = ({ label, sub, delay, glow, color = TEAL, icon }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const p = spring({ frame: Math.max(0, frame - delay), fps, config: { damping: 10, stiffness: 200 } });
+  const p = spring({ frame: Math.max(0, frame - delay), fps, config: MOTION.spring.snappy });
   const entranceScale = interpolate(p, [0, 1], [0.3, 1]);
   const opacity = interpolate(p, [0, 1], [0, 1]);
-  const g = glow ? Math.sin(frame * 0.1 + delay) * 0.35 + 0.65 : 0;
-  const breathe = p >= 1 ? Math.sin(frame * 0.08 + delay) * 0.015 + 1 : 1;
+  const g = glow ? MOTION.continuous.glowPulse(frame, 0.1, delay) : 0;
+  const breathe = p >= 1 ? MOTION.continuous.breathe(frame, delay) : 1;
   const scale = entranceScale * breathe;
   const iconColor = glow ? color : "#FFFFFF";
 

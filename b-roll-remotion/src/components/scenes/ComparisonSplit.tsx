@@ -1,8 +1,8 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { ComparisonSplitScene } from "../../data/schema";
+import { MOTION } from "../../data/motion-presets";
 
-const BG = "#0B1222";
 const TEAL = "#00D4FF";
 
 const ICONS: Record<string, string> = {
@@ -23,7 +23,7 @@ export const ComparisonSplit: React.FC<{ data: ComparisonSplitScene["data"] }> =
   const dimP = spring({ frame: Math.max(0, frame - rightDone), fps, config: { damping: 20 } });
   const leftDim = rightHidden ? 1 : interpolate(dimP, [0, 1], [1, 0.5]);
 
-  const rightGlow = Math.sin(frame * 0.08) * 0.3 + 0.7;
+  const rightGlow = MOTION.continuous.glowPulse(frame, 0.08);
 
   return (
     <div style={{
@@ -59,7 +59,7 @@ export const ComparisonSplit: React.FC<{ data: ComparisonSplitScene["data"] }> =
           const op = interpolate(p, [0, 1], [0, 1]);
           const x = interpolate(p, [0, 1], [-30, 0]);
           const settled = p >= 0.99;
-          const float = settled ? Math.sin(frame * 0.05 + i * 0.7) * 1.5 : 0;
+          const float = settled ? MOTION.continuous.floatY(frame, i) : 0;
           return (
             <div key={i} style={{
               opacity: op, transform: `translate(${x}px, ${float}px)`,
@@ -96,7 +96,7 @@ export const ComparisonSplit: React.FC<{ data: ComparisonSplitScene["data"] }> =
           const op = interpolate(p, [0, 1], [0, 1]);
           const x = interpolate(p, [0, 1], [30, 0]);
           const settled = p >= 0.99;
-          const float = settled ? Math.sin(frame * 0.05 + i * 0.7 + 1) * 1.5 : 0;
+          const float = settled ? MOTION.continuous.floatY(frame, i + 1.43) : 0;
           return (
             <div key={i} style={{
               opacity: op, transform: `translate(${x}px, ${float}px)`,

@@ -342,6 +342,166 @@ export const RemotionRoot: React.FC = () => {
           return { durationInFrames: lastScene };
         }}
       />
+
+      {/* ── Jon Pierpoint Vertical V2 (DynamicCutaway with new defaults) ── */}
+      <Composition
+        id="JonPierpointVerticalV2"
+        component={DynamicCutaway}
+        durationInFrames={1490}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          config: {
+            meta: {
+              contentType: "case-study",
+              title: "Walt Charles V2 Vertical",
+              fps: 30,
+              width: 1080,
+              height: 1920,
+              talkingHeadUrl: "jon-pierpoint/talking-head.mp4",
+            },
+            scenes: [
+              {
+                type: "person-scorecard",
+                from: 0,
+                durationInFrames: 360,
+                backgroundVideo: {
+                  query: "executive boardroom",
+                  url: "https://videos.pexels.com/video-files/29168272/12596084_1920_1080_30fps.mp4",
+                  opacity: 0.20,
+                  source: "pexels",
+                },
+                data: {
+                  name: "Walt Charles III",
+                  title: "Chief Procurement Officer",
+                  badges: [
+                    { value: "7", label: "Fortune 500s" },
+                    { value: "$100B+", label: "Spend Managed" },
+                    { value: "25+", label: "Years Exp." },
+                  ],
+                  bottomStrip: "WALT CHARLES · 7x CPO",
+                },
+              },
+              {
+                type: "workflow-pipeline",
+                from: 360,
+                durationInFrames: 270,
+                backgroundVideo: {
+                  query: "abstract neural network",
+                  url: "https://videos.pexels.com/video-files/37104472/15718790_1920_1080_30fps.mp4",
+                  opacity: 0.22,
+                  source: "pexels",
+                },
+                data: {
+                  header: "EP² Workflow",
+                  status: "ACTIVE",
+                  rows: [
+                    [
+                      { label: "Trigger", sub: "User Query", icon: "mdi:cursor-default-click" },
+                      { label: "SQL Agent", sub: "NLP → SQL", glow: true, icon: "mdi:brain" },
+                      { label: "Database", sub: "2.7M Records", icon: "mdi:database" },
+                    ],
+                  ],
+                  stats: [
+                    { label: "records queried", value: "2.7M" },
+                    { label: "response time", value: "11s" },
+                  ],
+                  title: { text: "AGENTIC OPERATING SYSTEM", accentWord: "AGENTIC" },
+                },
+              },
+              {
+                type: "kpi-dashboard",
+                from: 630,
+                durationInFrames: 330,
+                backgroundVideo: {
+                  query: "data center servers",
+                  url: "https://videos.pexels.com/video-files/4069295/4069295-uhd_2732_1440_25fps.mp4",
+                  opacity: 0.18,
+                  source: "pexels",
+                },
+                data: {
+                  header: "EP² Dashboard",
+                  status: "LIVE",
+                  cards: [
+                    { label: "Revenue at Risk", prefix: "$", value: 722, suffix: "K", color: "#00FF88" },
+                    { label: "Records Scanned", value: 2.7, suffix: "M", color: "#00D4FF" },
+                    { label: "High-Risk Suppliers", value: 5, color: "#FF4444" },
+                  ],
+                  sparkline: true,
+                },
+              },
+              {
+                type: "node-graph",
+                from: 960,
+                durationInFrames: 360,
+                backgroundVideo: {
+                  query: "abstract blue particles",
+                  url: "https://videos.pexels.com/video-files/29168272/12596084_1920_1080_30fps.mp4",
+                  opacity: 0.22,
+                  source: "pexels",
+                },
+                data: {
+                  header: "SYSTEM LIVE",
+                  status: { label: "DEPLOYED", color: "#00FF88" },
+                  nodes: [
+                    { label: "NLP Engine", x: 18, y: 30, color: "#00D4FF", icon: "mdi:translate" },
+                    { label: "SQL Pipeline", x: 50, y: 14, color: "#00D4FF", icon: "mdi:database-arrow-right", glow: true },
+                    { label: "Risk Scorer", x: 82, y: 30, color: "#FF8C00", icon: "mdi:shield-alert" },
+                    { label: "Intel Agent", x: 30, y: 70, color: "#00D4FF", icon: "mdi:brain" },
+                    { label: "Dashboard", x: 70, y: 70, color: "#00FF88", icon: "mdi:view-dashboard", glow: true },
+                  ],
+                  edges: [
+                    { from: 0, to: 1 },
+                    { from: 1, to: 2, color: "#FF8C00" },
+                    { from: 0, to: 3 },
+                    { from: 3, to: 4, color: "#00FF88" },
+                    { from: 1, to: 3, color: "#8B5CF6" },
+                  ],
+                  statusBar: [
+                    { label: "✓ Deployed", value: "" },
+                    { label: "Throughput", value: "2.6M/s" },
+                    { label: "Latency", value: "11ms" },
+                  ],
+                },
+              },
+              {
+                type: "cta-comment",
+                from: 1320,
+                durationInFrames: 170,
+                backgroundVideo: {
+                  query: "phone scrolling close-up",
+                  url: "https://videos.pexels.com/video-files/4069295/4069295-uhd_2732_1440_25fps.mp4",
+                  opacity: 0.18,
+                  source: "pexels",
+                },
+                data: {
+                  action: "COMMENT",
+                  keyword: "PROCUREMENT",
+                  subtitle: "I'll send the full breakdown",
+                },
+              },
+            ],
+            textStrip: {
+              labels: [
+                { from: 0, label: "Walt Charles III · 7x CPO" },
+                { from: 360, label: "EP² · Agentic Operating System" },
+                { from: 630, label: "EP² · Revenue at Risk" },
+                { from: 960, label: "True Horizons · System Live" },
+                { from: 1320, label: "Comment Procurement" },
+              ],
+            },
+            lowerThirds: [
+              {
+                name: "Walt Charles III",
+                title: "Chief Procurement Officer",
+                from: 60,
+                durationInFrames: 240,
+              },
+            ],
+          } as BRollConfig,
+        }}
+      />
     </>
   );
 };

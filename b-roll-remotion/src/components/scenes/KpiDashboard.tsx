@@ -1,8 +1,8 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { KpiDashboardScene } from "../../data/schema";
+import { MOTION } from "../../data/motion-presets";
 
-const BG = "#0B1222";
 const TEAL = "#00D4FF";
 const GREEN = "#00FF88";
 const CARD_BG = "#111E30";
@@ -46,7 +46,7 @@ export const KpiDashboard: React.FC<{ data: KpiDashboardScene["data"] }> = ({ da
           const op = interpolate(p, [0, 1], [0, 1]);
           const countFrames = 35;
           const t = Math.min(Math.max(0, frame - delay) / countFrames, 1);
-          const eased = 1 - Math.pow(1 - t, 3);
+          const eased = MOTION.easing.easeOutCubic(t);
           // After count-up settles, add a live tick that fluctuates within tickRange
           const settled = t >= 1;
           const tickBase = Math.round(eased * card.value);
@@ -57,8 +57,8 @@ export const KpiDashboard: React.FC<{ data: KpiDashboardScene["data"] }> = ({ da
             ? Math.round(((tickSin + 1) / 2) * (tickMax - tickMin) + tickMin)
             : 0;
           const counted = Math.max(0, tickBase + tickOffset);
-          const cardGlow = Math.sin(frame * 0.1 + i) * 0.3 + 0.7;
-          const breathe = settled ? Math.sin(frame * 0.07 + i) * 0.01 + 1 : 1;
+          const cardGlow = MOTION.continuous.glowPulse(frame, 0.1, i);
+          const breathe = settled ? MOTION.continuous.breathe(frame, i) : 1;
           const scale = entranceScale * breathe;
           return (
             <div key={card.label} style={{

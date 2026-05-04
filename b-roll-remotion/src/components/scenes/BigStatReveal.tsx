@@ -1,8 +1,8 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { BigStatRevealScene } from "../../data/schema";
+import { MOTION } from "../../data/motion-presets";
 
-const BG = "#0B1222";
 const TEAL = "#00D4FF";
 
 const Particles: React.FC = () => {
@@ -45,8 +45,8 @@ export const BigStatReveal: React.FC<{ data: BigStatRevealScene["data"] }> = ({ 
   const { fps } = useVideoConfig();
 
   const t = Math.min(Math.max(0, frame - 6) / 40, 1);
-  const eased = 1 - Math.pow(1 - t, 3);
-  const glow = Math.sin(frame * 0.1) * 0.3 + 0.7;
+  const eased = MOTION.easing.easeOutCubic(t);
+  const glow = MOTION.continuous.glowPulse(frame);
 
   const subP = spring({ frame: Math.max(0, frame - 30), fps, config: { damping: 16 } });
   const subOp = interpolate(subP, [0, 1], [0, 1]);
