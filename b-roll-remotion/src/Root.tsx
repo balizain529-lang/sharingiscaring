@@ -367,7 +367,13 @@ export const RemotionRoot: React.FC = () => {
                 type: "comparison-split",
                 from: 210,
                 durationInFrames: 240,
-                layout: "caption-center",
+                layout: "fullscreen-cutaway",
+                backgroundVideo: {
+                  query: "clock time-lapse",
+                  url: "https://videos.pexels.com/video-files/7346142/7346142-uhd_1920_1440_25fps.mp4",
+                  opacity: 0.20,
+                  source: "pexels",
+                },
                 data: {
                   left: {
                     header: "THE CREATOR TRAP",
@@ -386,7 +392,7 @@ export const RemotionRoot: React.FC = () => {
                 type: "big-stat-reveal",
                 from: 720,
                 durationInFrames: 240,
-                layout: "caption-center",
+                layout: "caption-left",
                 data: {
                   value: 0,
                   color: "#FF8C00",
@@ -403,8 +409,8 @@ export const RemotionRoot: React.FC = () => {
                 durationInFrames: 360,
                 layout: "fullscreen-cutaway",
                 backgroundVideo: {
-                  query: "youtube analytics dashboard screen",
-                  url: "https://videos.pexels.com/video-files/37104472/15718790_1920_1080_30fps.mp4",
+                  query: "video editor workstation timeline",
+                  url: "https://videos.pexels.com/video-files/32150707/13707651_2560_1440_24fps.mp4",
                   opacity: 0.22,
                   source: "pexels",
                 },

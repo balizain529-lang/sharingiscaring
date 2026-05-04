@@ -15,9 +15,28 @@ const TEAL = "#00D4FF";
  * - comparison-split: animated BAD → GOOD reveal
  * - big-stat-reveal: bold value + subtitle (alternative to corner hero)
  */
-export const CaptionOverlay: React.FC<{ scene: Scene }> = ({ scene }) => {
+export const CaptionOverlay: React.FC<{ scene: Scene; position?: "center" | "left" }> = ({ scene, position = "center" }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+
+  if (position === "left") {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: 64,
+          top: "12%",
+          maxWidth: "45%",
+          fontFamily: "Inter, system-ui, sans-serif",
+          pointerEvents: "none",
+          zIndex: 10,
+          textAlign: "left",
+        }}
+      >
+        <CaptionContent scene={scene} frame={frame} fps={fps} align="left" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -32,12 +51,14 @@ export const CaptionOverlay: React.FC<{ scene: Scene }> = ({ scene }) => {
         textAlign: "center",
       }}
     >
-      <CaptionContent scene={scene} frame={frame} fps={fps} />
+      <CaptionContent scene={scene} frame={frame} fps={fps} align="center" />
     </div>
   );
 };
 
-const CaptionContent: React.FC<{ scene: Scene; frame: number; fps: number }> = ({ scene, frame, fps }) => {
+const CaptionContent: React.FC<{ scene: Scene; frame: number; fps: number; align?: "center" | "left" }> = ({ scene, frame, fps, align = "center" }) => {
+  const isLeft = align === "left";
+
   if (scene.type === "comparison-split") {
     const data = scene.data;
     const left = data.left;
@@ -45,12 +66,12 @@ const CaptionContent: React.FC<{ scene: Scene; frame: number; fps: number }> = (
     const hasRight = right.items.length > 0;
 
     return (
-      <div style={{ display: "inline-block", maxWidth: "70%", padding: "20px 32px", background: "rgba(11,18,34,0.82)", backdropFilter: "blur(10px)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)" }}>
-        <ItemList items={left.items} color={left.color} icon={left.icon} startDelay={0} frame={frame} fps={fps} />
+      <div style={{ display: "inline-block", maxWidth: isLeft ? "100%" : "70%", padding: "20px 32px", background: "rgba(11,18,34,0.82)", backdropFilter: "blur(10px)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)" }}>
+        <ItemList items={left.items} color={left.color} icon={left.icon} startDelay={0} frame={frame} fps={fps} align={align} />
         {hasRight && (
           <>
-            <div style={{ height: 2, background: "rgba(255,255,255,0.15)", margin: "16px auto", width: "60%" }} />
-            <ItemList items={right.items} color={right.color} icon={right.icon} startDelay={left.items.length * 8 + 20} frame={frame} fps={fps} />
+            <div style={{ height: 2, background: "rgba(255,255,255,0.15)", margin: isLeft ? "16px 0" : "16px auto", width: "60%" }} />
+            <ItemList items={right.items} color={right.color} icon={right.icon} startDelay={left.items.length * 8 + 20} frame={frame} fps={fps} align={align} />
           </>
         )}
       </div>
@@ -75,28 +96,28 @@ const CaptionContent: React.FC<{ scene: Scene; frame: number; fps: number }> = (
     }
 
     return (
-      <div style={{ display: "inline-block", maxWidth: "85%", padding: "32px 56px", background: "rgba(11,18,34,0.78)", backdropFilter: "blur(10px)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)" }}>
+      <div style={{ display: "inline-block", maxWidth: isLeft ? "100%" : "85%", padding: isLeft ? "26px 36px" : "32px 56px", background: "rgba(11,18,34,0.78)", backdropFilter: "blur(10px)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)", textAlign: isLeft ? "left" : "center" }}>
         {data.value !== 0 && (
-          <div style={{ fontSize: 120, fontWeight: 900, color: data.color, textShadow: `0 0 ${36 * glow}px ${data.color}88`, lineHeight: 1, marginBottom: 16 }}>
+          <div style={{ fontSize: isLeft ? 88 : 120, fontWeight: 900, color: data.color, textShadow: `0 0 ${36 * glow}px ${data.color}88`, lineHeight: 1, marginBottom: 16 }}>
             {data.prefix ?? ""}
             {displayed}
             {suffix}
           </div>
         )}
         {data.comparison && (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 40, marginBottom: 20, opacity: interpolate(spring({ frame: Math.max(0, frame - 30), fps, config: { damping: 18 } }), [0, 1], [0, 1]) }}>
+          <div style={{ display: "flex", justifyContent: isLeft ? "flex-start" : "center", alignItems: "center", gap: isLeft ? 28 : 40, marginBottom: 20, opacity: interpolate(spring({ frame: Math.max(0, frame - 30), fps, config: { damping: 18 } }), [0, 1], [0, 1]) }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em" }}>{data.comparison.before.label}</div>
-              <div style={{ fontSize: 36, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>{data.comparison.before.value}</div>
+              <div style={{ fontSize: isLeft ? 44 : 36, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>{data.comparison.before.value}</div>
             </div>
             <div style={{ fontSize: 32, color: "rgba(255,255,255,0.4)" }}>→</div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em" }}>{data.comparison.after.label}</div>
-              <div style={{ fontSize: 36, fontWeight: 800, color: data.color, textShadow: `0 0 12px ${data.color}66` }}>{data.comparison.after.value}</div>
+              <div style={{ fontSize: isLeft ? 56 : 36, fontWeight: 800, color: data.color, textShadow: `0 0 12px ${data.color}66` }}>{data.comparison.after.value}</div>
             </div>
           </div>
         )}
-        <div style={{ fontSize: 22, fontWeight: 600, color: "rgba(255,255,255,0.85)", maxWidth: 800, margin: "0 auto" }}>{data.subtitle}</div>
+        <div style={{ fontSize: isLeft ? 20 : 22, fontWeight: 600, color: "rgba(255,255,255,0.85)", maxWidth: 800, margin: isLeft ? 0 : "0 auto" }}>{data.subtitle}</div>
       </div>
     );
   }
@@ -116,7 +137,8 @@ const ItemList: React.FC<{
   startDelay: number;
   frame: number;
   fps: number;
-}> = ({ items, color, icon, startDelay, frame, fps }) => {
+  align?: "center" | "left";
+}> = ({ items, color, icon, startDelay, frame, fps, align = "center" }) => {
   return (
     <div>
       {items.map((item, i) => {
@@ -125,7 +147,7 @@ const ItemList: React.FC<{
         const op = interpolate(p, [0, 1], [0, 1]);
         const x = interpolate(p, [0, 1], [-30, 0]);
         return (
-          <div key={i} style={{ opacity: op, transform: `translateX(${x}px)`, fontSize: 26, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 6 }}>
+          <div key={i} style={{ opacity: op, transform: `translateX(${x}px)`, fontSize: 26, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: align === "left" ? "flex-start" : "center", gap: 14, marginBottom: 6 }}>
             <span style={{ fontSize: 22, color, textShadow: `0 0 8px ${color}44` }}>{ICONS[icon] || "•"}</span>
             {item}
           </div>

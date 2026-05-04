@@ -18,7 +18,7 @@ const resolveVideoSrc = (url: string): string =>
 
 const FADE_FRAMES = 8;
 
-type Layout = "lower-third" | "hero-stat-corner" | "caption-center" | "fullscreen-cutaway";
+type Layout = "lower-third" | "hero-stat-corner" | "caption-center" | "caption-left" | "fullscreen-cutaway";
 
 /**
  * Default overlay layout per scene type when scene.layout isn't explicitly set.
@@ -81,7 +81,8 @@ const OverlaySwitch: React.FC<{ scene: Scene }> = ({ scene }) => {
     <AbsoluteFill style={{ opacity }}>
       {layout === "lower-third" && <LowerThirdOverlay scene={scene} />}
       {layout === "hero-stat-corner" && <HeroStatOverlay scene={scene} />}
-      {layout === "caption-center" && <CaptionOverlay scene={scene} />}
+      {layout === "caption-center" && <CaptionOverlay scene={scene} position="center" />}
+      {layout === "caption-left" && <CaptionOverlay scene={scene} position="left" />}
     </AbsoluteFill>
   );
 };

@@ -78,11 +78,12 @@ interface SceneBase {
   /** For DynamicOverlay composition: zone where the overlay renders.
    *  - "lower-third": bottom 28% of frame, full width (default for person-scorecard, cta-comment, logo-endorsement)
    *  - "hero-stat-corner": top-right corner, ~30% of frame (default for big-stat-reveal, kpi-dashboard)
-   *  - "caption-center": full-width animated text caption near top, semi-transparent bg (default for comparison-split)
+   *  - "caption-center": animated text caption centered horizontally near top (default for comparison-split)
+   *  - "caption-left": same as caption-center but anchored to left side of frame, leaves right half open for speaker
    *  - "fullscreen-cutaway": full-screen scene component with optional Pexels backgroundVideo, COVERS the speaker
    *    for this one scene (use when the diagram itself is the focus, e.g. workflow-pipeline / node-graph)
    *  Ignored by DynamicCutaway (which fills full screen with the scene). */
-  layout?: "lower-third" | "hero-stat-corner" | "caption-center" | "fullscreen-cutaway";
+  layout?: "lower-third" | "hero-stat-corner" | "caption-center" | "caption-left" | "fullscreen-cutaway";
   /** Optional polish notes from Claude flagging potential first-pass issues. */
   _polishNotes?: string;
 }
