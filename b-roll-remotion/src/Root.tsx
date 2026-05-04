@@ -366,7 +366,7 @@ export const RemotionRoot: React.FC = () => {
               {
                 type: "comparison-split",
                 from: 210,
-                durationInFrames: 240,
+                durationInFrames: 180,
                 layout: "fullscreen-cutaway",
                 backgroundVideo: {
                   query: "clock time-lapse",
@@ -391,7 +391,7 @@ export const RemotionRoot: React.FC = () => {
               {
                 type: "big-stat-reveal",
                 from: 720,
-                durationInFrames: 240,
+                durationInFrames: 180,
                 layout: "caption-left",
                 data: {
                   value: 0,
@@ -406,7 +406,7 @@ export const RemotionRoot: React.FC = () => {
               {
                 type: "workflow-pipeline",
                 from: 1200,
-                durationInFrames: 360,
+                durationInFrames: 300,
                 layout: "fullscreen-cutaway",
                 backgroundVideo: {
                   query: "video editor workstation timeline",
