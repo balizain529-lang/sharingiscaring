@@ -25,7 +25,7 @@ export const CaptionOverlay: React.FC<{ scene: Scene }> = ({ scene }) => {
         position: "absolute",
         left: 0,
         right: 0,
-        top: "20%",
+        top: "4%",
         fontFamily: "Inter, system-ui, sans-serif",
         pointerEvents: "none",
         zIndex: 10,
@@ -45,11 +45,11 @@ const CaptionContent: React.FC<{ scene: Scene; frame: number; fps: number }> = (
     const hasRight = right.items.length > 0;
 
     return (
-      <div style={{ display: "inline-block", maxWidth: "85%", padding: "28px 40px", background: "rgba(11,18,34,0.78)", backdropFilter: "blur(10px)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)" }}>
+      <div style={{ display: "inline-block", maxWidth: "70%", padding: "20px 32px", background: "rgba(11,18,34,0.82)", backdropFilter: "blur(10px)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 12px 36px rgba(0,0,0,0.5)" }}>
         <ItemList items={left.items} color={left.color} icon={left.icon} startDelay={0} frame={frame} fps={fps} />
         {hasRight && (
           <>
-            <div style={{ height: 2, background: "rgba(255,255,255,0.15)", margin: "20px auto", width: "60%" }} />
+            <div style={{ height: 2, background: "rgba(255,255,255,0.15)", margin: "16px auto", width: "60%" }} />
             <ItemList items={right.items} color={right.color} icon={right.icon} startDelay={left.items.length * 8 + 20} frame={frame} fps={fps} />
           </>
         )}
@@ -125,8 +125,8 @@ const ItemList: React.FC<{
         const op = interpolate(p, [0, 1], [0, 1]);
         const x = interpolate(p, [0, 1], [-30, 0]);
         return (
-          <div key={i} style={{ opacity: op, transform: `translateX(${x}px)`, fontSize: 32, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 8 }}>
-            <span style={{ fontSize: 28, color, textShadow: `0 0 8px ${color}44` }}>{ICONS[icon] || "•"}</span>
+          <div key={i} style={{ opacity: op, transform: `translateX(${x}px)`, fontSize: 26, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 6 }}>
+            <span style={{ fontSize: 22, color, textShadow: `0 0 8px ${color}44` }}>{ICONS[icon] || "•"}</span>
             {item}
           </div>
         );
