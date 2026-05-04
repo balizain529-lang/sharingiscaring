@@ -13,6 +13,10 @@ node_modules/
 b-roll-remotion/out/
 Jon Pierpoint Short Form Clip/
 
+# External Remotion reference repos (cloned for study, not part of our project)
+external-references/*/
+!external-references/README.md
+
 # OS files
 .DS_Store
 Thumbs.db
