@@ -147,6 +147,8 @@ All scenes use these defaults (defined in `templates/README.md`):
 | **Row highlight scan** | Active row index cycles via `Math.floor(frame / interval) % count` | Table data scanning |
 | **Clip-path reveal** | `clipPath: inset(0 X% 0 0)` animated | Text/chart progressive reveal |
 
+For lower-level animation primitives (typewriters, particles, 3D scenes, glitch text, animated counters), the [`remotion-bits`](https://www.npmjs.com/package/remotion-bits) package is installed in `b-roll-remotion` and importable from any composition. See [`templates/bits-library.md`](templates/bits-library.md) for the catalog and integration examples.
+
 ---
 
 ## Video Transcoding

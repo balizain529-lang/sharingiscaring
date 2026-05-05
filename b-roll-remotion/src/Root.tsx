@@ -16,6 +16,7 @@ import { PodcastShort } from "./compositions/_scaffolds/podcast/PodcastShort";
 import { DynamicShort } from "./compositions/dynamic/DynamicShort";
 import { DynamicCutaway } from "./compositions/dynamic/DynamicCutaway";
 import { DynamicOverlay } from "./compositions/dynamic/DynamicOverlay";
+import { BitsShowcase } from "./compositions/bits/BitsShowcase";
 import { TAKEAWAYS } from "./data/conclusion";
 import type { BRollConfig } from "./data/schema";
 
@@ -461,6 +462,16 @@ export const RemotionRoot: React.FC = () => {
             ],
           } as BRollConfig,
         }}
+      />
+
+      {/* ── Bits Showcase (remotion-bits library reference) ── */}
+      <Composition
+        id="BitsShowcase"
+        component={BitsShowcase}
+        durationInFrames={210}
+        fps={30}
+        width={1920}
+        height={1080}
       />
 
       {/* ── Jon Pierpoint Vertical V2 (DynamicCutaway with new defaults) ── */}

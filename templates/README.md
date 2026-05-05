@@ -22,6 +22,8 @@ See [Content-Type Blueprints](content-types/README.md) for the full index and de
 2. Fill in the data shape with your content
 3. Reference the template name + data when building the Remotion composition
 
+For lower-level animation primitives (typewriters, particles, 3D scenes, glitch text, animated counters) usable inside any template, see [bits-library.md](bits-library.md). The `remotion-bits` package is installed and importable from any composition.
+
 ---
 
 ## Templates
